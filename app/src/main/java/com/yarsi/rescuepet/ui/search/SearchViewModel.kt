@@ -16,6 +16,18 @@ class SearchViewModel : ViewModel() {
     val error = MutableLiveData<String?>()
     val userLocation = MutableLiveData<Pair<Double, Double>?>()
 
+    fun onLocationError(message: String) {
+        error.value = message
+    }
+
+    fun onLocationUnavailable() {
+        error.value = "Lokasi tidak tersedia, nyalakan GPS"
+    }
+
+    fun onLocationFailure() {
+        error.value = "Gagal mendapatkan lokasi"
+    }
+
     fun searchNearby(userLat: Double, userLon: Double) {
         userLocation.value = Pair(userLat, userLon)
         isLoading.value = true
@@ -41,7 +53,7 @@ class SearchViewModel : ViewModel() {
         userLon: Double,
         radiusKm: Double = 10.0
     ): List<AnimalWithDistance> {
-        return animals
+        val withCoords = animals
             .filter { it.latitude != 0.0 && it.longitude != 0.0 }
             .map { animal ->
                 val distance = calculateDistance(userLat, userLon, animal.latitude, animal.longitude)
@@ -49,6 +61,12 @@ class SearchViewModel : ViewModel() {
             }
             .filter { it.distanceKm <= radiusKm }
             .sortedBy { it.distanceKm }
+
+        val withoutCoords = animals
+            .filter { it.latitude == 0.0 && it.longitude == 0.0 }
+            .map { AnimalWithDistance(it, Double.MAX_VALUE) }
+
+        return withCoords + withoutCoords
     }
 
     private fun calculateDistance(

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -80,8 +86,10 @@ fun DetailScreen(
     val isLoading by viewModel.isLoading.observeAsState(false)
     val error by viewModel.error.observeAsState()
     val updateState by viewModel.updateState.observeAsState()
+    val deleteState by viewModel.deleteState.observeAsState()
     val currentUserId by viewModel.currentUserId.observeAsState()
     val isUpdating by remember { derivedStateOf { updateState is Result.Loading } }
+    val isDeleting by remember { derivedStateOf { deleteState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val storageRepo = remember { StorageRepository() }
@@ -90,8 +98,21 @@ fun DetailScreen(
         when (val state = updateState) {
             is Result.Success -> {
                 scope.launch { snackbarHostState.showSnackbar("Status berhasil diperbarui") }
-                viewModel.animal.value?.let { a ->
-                    viewModel.loadAnimal(a.id)
+            }
+            is Result.Error -> {
+                scope.launch { snackbarHostState.showSnackbar(state.message) }
+            }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(deleteState) {
+        when (val state = deleteState) {
+            is Result.Success -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Postingan berhasil dihapus")
+                    kotlinx.coroutines.delay(800)
+                    onBack()
                 }
             }
             is Result.Error -> {
@@ -105,6 +126,14 @@ fun DetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Detail Hewan") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -135,9 +164,13 @@ fun DetailScreen(
                         animal = animal!!,
                         currentUserId = currentUserId,
                         isUpdating = isUpdating,
+                        isDeleting = isDeleting,
                         storageRepo = storageRepo,
                         onUpdateStatus = { newStatus ->
                             viewModel.updateStatus(animal!!.id, newStatus)
+                        },
+                        onDelete = {
+                            viewModel.deleteAnimal(animal!!.id)
                         }
                     )
                 }
@@ -151,8 +184,10 @@ fun DetailContent(
     animal: Animal,
     currentUserId: String?,
     isUpdating: Boolean,
+    isDeleting: Boolean,
     storageRepo: StorageRepository,
-    onUpdateStatus: (String) -> Unit
+    onUpdateStatus: (String) -> Unit,
+    onDelete: () -> Unit
 ) {
     val isOwner = currentUserId != null && currentUserId == animal.posterId
 
@@ -173,6 +208,7 @@ fun DetailContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
+                .background(Color.LightGray, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
@@ -198,7 +234,7 @@ fun DetailContent(
                 text = when (animal.status) {
                     "available" -> "Tersedia"
                     "adopted" -> "Teradopsi"
-                    "found" -> "Ditemukan"
+                    "found" -> "Sudah Ditemukan"
                     else -> animal.status
                 },
                 style = MaterialTheme.typography.labelMedium,
@@ -207,7 +243,7 @@ fun DetailContent(
         }
 
         DetailRow("Jenis", animal.type)
-        if (animal.age > 0) DetailRow("Usia", "${animal.age} bulan")
+        DetailRow("Usia", if (animal.age > 0) "${animal.age} bulan" else "Belum diketahui")
         if (animal.description.isNotEmpty()) {
             Text(
                 text = animal.description,
@@ -215,7 +251,8 @@ fun DetailContent(
             )
         }
         if (animal.posterContact.isNotEmpty()) {
-            DetailRow("Kontak", animal.posterContact)
+            val masked = if (isOwner) animal.posterContact else maskContact(animal.posterContact)
+            DetailRow("Kontak", masked)
         }
         if (animal.latitude != 0.0 || animal.longitude != 0.0) {
             DetailRow("Lokasi", "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}")
@@ -232,25 +269,51 @@ fun DetailContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
-                    onClick = { onUpdateStatus("adopted") },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isUpdating
-                ) {
-                    Text("Teradopsi")
+                if (animal.category == "adoption") {
+                    Button(
+                        onClick = { onUpdateStatus("adopted") },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
+                    ) {
+                        Text("Tandai Teradopsi")
+                    }
                 }
-                OutlinedButton(
-                    onClick = { onUpdateStatus("found") },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isUpdating
-                ) {
-                    Text("Ditemukan")
+                if (animal.category == "lost") {
+                    OutlinedButton(
+                        onClick = { onUpdateStatus("reunited") },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
+                    ) {
+                        Text("Tandai Ditemukan")
+                    }
                 }
+            }
+        }
+
+        if (isOwner) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isDeleting,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(if (isDeleting) "Menghapus..." else "Hapus Postingan")
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun maskContact(contact: String): String {
+    if (contact.length <= 4) return contact
+    val first = contact.take(4)
+    val last = if (contact.length >= 8) contact.takeLast(4) else ""
+    val mid = contact.length - 4 - last.length
+    return first + "*".repeat(mid.coerceAtLeast(0)) + last
 }
 
 @Composable

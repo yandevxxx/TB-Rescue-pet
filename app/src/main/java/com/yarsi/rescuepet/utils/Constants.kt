@@ -1,9 +1,11 @@
 package com.yarsi.rescuepet.utils
 
+import com.yarsi.rescuepet.BuildConfig
+
 object Constants {
-    const val APPWRITE_ENDPOINT = "https://sgp.cloud.appwrite.io/v1"
-    const val APPWRITE_PROJECT_ID = "6a254936000091ed5512"
-    const val DATABASE_ID = "rescuepet-db"
-    const val COLLECTION_ANIMALS = "animals"
-    const val BUCKET_ID = "animal-images"
+    val APPWRITE_ENDPOINT: String = BuildConfig.APPWRITE_ENDPOINT
+    val APPWRITE_PROJECT_ID: String = BuildConfig.APPWRITE_PROJECT_ID
+    val DATABASE_ID: String = BuildConfig.APPWRITE_DATABASE_ID
+    val COLLECTION_ANIMALS: String = BuildConfig.APPWRITE_COLLECTION_ANIMALS
+    val BUCKET_ID: String = BuildConfig.APPWRITE_BUCKET_ID
 }

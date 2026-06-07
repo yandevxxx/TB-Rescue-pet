@@ -18,8 +18,10 @@ class DetailViewModel : ViewModel() {
     val error = MutableLiveData<String?>()
     val updateState = MutableLiveData<Result<Unit>>()
     val currentUserId = MutableLiveData<String?>()
+    private var currentAnimalId: String? = null
 
     fun loadAnimal(id: String) {
+        currentAnimalId = id
         isLoading.value = true
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()
@@ -40,10 +42,27 @@ class DetailViewModel : ViewModel() {
         }
     }
 
+    fun reloadAnimal() {
+        currentAnimalId?.let { loadAnimal(it) }
+    }
+
+    val deleteState = MutableLiveData<Result<Unit>>()
+
     fun updateStatus(animalId: String, newStatus: String) {
         updateState.value = Result.Loading
         viewModelScope.launch {
-            updateState.value = animalRepo.updateStatus(animalId, newStatus)
+            val result = animalRepo.updateStatus(animalId, newStatus)
+            updateState.value = result
+            if (result is Result.Success) {
+                reloadAnimal()
+            }
+        }
+    }
+
+    fun deleteAnimal(animalId: String) {
+        deleteState.value = Result.Loading
+        viewModelScope.launch {
+            deleteState.value = animalRepo.deleteAnimal(animalId)
         }
     }
 }

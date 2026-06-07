@@ -39,8 +39,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.yarsi.rescuepet.data.remote.AppwriteClient
+import androidx.lifecycle.lifecycleScope
 import com.yarsi.rescuepet.MainActivity
+import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
 import kotlinx.coroutines.launch
@@ -50,7 +51,14 @@ class LoginActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppwriteClient.initialize(this)
+        lifecycleScope.launch {
+            val session = AuthRepository().getCurrentUser()
+            if (session is Result.Success) {
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                finish()
+                return@launch
+            }
+        }
         setContent {
             RescuePetTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {

@@ -18,7 +18,11 @@ class PostViewModel : ViewModel() {
 
     val postState = MutableLiveData<Result<String>>()
 
-    fun postAnimal(animal: Animal, imageFile: File?) {
+    fun postAnimal(animal: Animal, imageFile: File?, imagePickFailed: Boolean = false) {
+        if (imagePickFailed) {
+            postState.value = Result.Error("Gagal memproses foto, coba pilih ulang")
+            return
+        }
         postState.value = Result.Loading
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()
@@ -36,6 +40,8 @@ class PostViewModel : ViewModel() {
                     return@launch
                 }
                 imageId = (uploadResult as Result.Success).data
+
+                imageFile.delete()
             }
 
             val animalWithMeta = animal.copy(imageId = imageId, posterId = userId)

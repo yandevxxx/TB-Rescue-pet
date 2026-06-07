@@ -21,6 +21,11 @@ class AuthRepository {
         return try {
             try { account.deleteSession("current") } catch (_: Exception) {}
             val user = account.create("unique()", email, password, name)
+            try {
+                account.createEmailPasswordSession(email, password)
+            } catch (_: AppwriteException) {
+                return Result.Error("Akun berhasil dibuat, silakan login")
+            }
             Result.Success(user.id)
         } catch (e: AppwriteException) {
             Result.Error(e.message ?: "Registrasi gagal")

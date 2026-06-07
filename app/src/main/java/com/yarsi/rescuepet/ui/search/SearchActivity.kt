@@ -1,6 +1,7 @@
 package com.yarsi.rescuepet.ui.search
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +25,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.yarsi.rescuepet.data.repository.StorageRepository
+import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import java.util.Locale
 
@@ -63,7 +73,13 @@ class SearchActivity : ComponentActivity() {
             RescuePetTheme {
                 SearchScreen(
                     viewModel = viewModel,
-                    onBack = { finish() }
+                    onBack = { finish() },
+                    onAnimalClick = { animalId ->
+                        Intent(this, AnimalDetailActivity::class.java).apply {
+                            putExtra("animal_id", animalId)
+                            startActivity(this)
+                        }
+                    }
                 )
             }
         }
@@ -74,7 +90,8 @@ class SearchActivity : ComponentActivity() {
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAnimalClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val nearbyAnimals by viewModel.nearbyAnimals.observeAsState(emptyList())
@@ -92,7 +109,7 @@ fun SearchScreen(
         if (granted) {
             getUserLocation(context, viewModel)
         } else {
-            viewModel.error.value = "Izin lokasi diperlukan untuk pencarian terdekat"
+            viewModel.onLocationError("Izin lokasi diperlukan untuk pencarian terdekat")
         }
     }
 
@@ -111,6 +128,14 @@ fun SearchScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Hewan Terdekat") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Kembali"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -159,7 +184,7 @@ fun SearchScreen(
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(nearbyAnimals, key = { it.animal.id }) { item ->
-                            NearbyAnimalCard(item)
+                            NearbyAnimalCard(item = item, onClick = { onAnimalClick(item.animal.id) })
                         }
                     }
                 }
@@ -169,7 +194,7 @@ fun SearchScreen(
 }
 
 @Composable
-fun NearbyAnimalCard(item: AnimalWithDistance) {
+fun NearbyAnimalCard(item: AnimalWithDistance, onClick: () -> Unit = {}) {
     val storageRepo = remember { StorageRepository() }
     val animal = item.animal
     val distanceText = if (item.distanceKm < 1.0) {
@@ -179,6 +204,7 @@ fun NearbyAnimalCard(item: AnimalWithDistance) {
     }
 
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -197,6 +223,7 @@ fun NearbyAnimalCard(item: AnimalWithDistance) {
                 contentDescription = animal.name,
                 modifier = Modifier
                     .size(80.dp)
+                    .background(Color.LightGray, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -238,9 +265,20 @@ private fun getUserLocation(
         if (location != null) {
             viewModel.searchNearby(location.latitude, location.longitude)
         } else {
-            viewModel.error.value = "Lokasi tidak tersedia, nyalakan GPS"
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                CancellationTokenSource().token
+            ).addOnSuccessListener { currentLocation ->
+                if (currentLocation != null) {
+                    viewModel.searchNearby(currentLocation.latitude, currentLocation.longitude)
+                } else {
+                    viewModel.onLocationUnavailable()
+                }
+            }.addOnFailureListener {
+                viewModel.onLocationFailure()
+            }
         }
     }.addOnFailureListener {
-        viewModel.error.value = "Gagal mendapatkan lokasi"
+        viewModel.onLocationFailure()
     }
 }

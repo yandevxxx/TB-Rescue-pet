@@ -2,7 +2,6 @@ package com.yarsi.rescuepet.ui.post
 
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -22,11 +21,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.MaterialTheme
@@ -132,7 +135,11 @@ fun PostAnimalScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Posting Hewan") },
-                navigationIcon = {},
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -307,15 +314,23 @@ fun PostAnimalScreen(
                             else -> "adoption"
                         }
                     )
-                    val imageFile = imageUri?.let { uri ->
-                        uriToFile(context, uri)
+                    val uri = imageUri
+                    val (imageFile, pickFailed) = if (uri != null) {
+                        val file = uriToFile(context, uri)
+                        file to (file == null)
+                    } else {
+                        null to false
                     }
-                    viewModel.postAnimal(animal, imageFile)
+                    viewModel.postAnimal(animal, imageFile, pickFailed)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 enabled = !isLoading && name.isNotBlank()
+                        && selectedType.isNotBlank()
+                        && selectedCategory.isNotBlank()
+                        && age.isNotBlank()
+                        && contact.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -336,7 +351,7 @@ fun PostAnimalScreen(
 private fun uriToFile(context: android.content.Context, uri: Uri): File? {
     return try {
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-        val file = File(context.cacheDir, "upload_${System.currentTimeMillis()}.jpg")
+        val file = File(context.filesDir, "upload_${System.currentTimeMillis()}.jpg")
         file.outputStream().use { output -> inputStream.copyTo(output) }
         file
     } catch (_: Exception) {

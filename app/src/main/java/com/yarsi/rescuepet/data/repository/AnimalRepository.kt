@@ -43,7 +43,7 @@ class AnimalRepository {
             val queries = mutableListOf<String>()
             if (category != null) queries.add(Query.equal("category", category))
             queries.add(Query.orderDesc("\$createdAt"))
-            queries.add(Query.limit(50))
+            queries.add(Query.limit(500))
 
             val docs = db.listDocuments(
                 databaseId = Constants.DATABASE_ID,
@@ -80,6 +80,19 @@ class AnimalRepository {
             Result.Success(Unit)
         } catch (e: AppwriteException) {
             Result.Error(e.message ?: "Gagal update")
+        }
+    }
+
+    suspend fun deleteAnimal(id: String): Result<Unit> {
+        return try {
+            db.deleteDocument(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                documentId = id
+            )
+            Result.Success(Unit)
+        } catch (e: AppwriteException) {
+            Result.Error(e.message ?: "Gagal hapus")
         }
     }
 

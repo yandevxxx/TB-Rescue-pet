@@ -1,7 +1,28 @@
+import java.io.FileInputStream
+import java.util.Properties
+import org.gradle.api.GradleException
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+fun requireProp(key: String): String {
+    return localProperties.getProperty(key)
+        ?: throw GradleException("$key not set in local.properties — lihat petunjuk di README")
+}
+
+val appwriteEndpoint = requireProp("appwrite.endpoint")
+val appwriteProjectId = requireProp("appwrite.project.id")
+val appwriteDatabaseId = requireProp("appwrite.database.id")
+val appwriteCollectionAnimals = requireProp("appwrite.collection.animals")
+val appwriteBucketId = requireProp("appwrite.bucket.id")
 
 android {
     namespace = "com.yarsi.rescuepet"
@@ -19,6 +40,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "APPWRITE_ENDPOINT", "\"${appwriteEndpoint}\"")
+        buildConfigField("String", "APPWRITE_PROJECT_ID", "\"${appwriteProjectId}\"")
+        buildConfigField("String", "APPWRITE_DATABASE_ID", "\"${appwriteDatabaseId}\"")
+        buildConfigField("String", "APPWRITE_COLLECTION_ANIMALS", "\"${appwriteCollectionAnimals}\"")
+        buildConfigField("String", "APPWRITE_BUCKET_ID", "\"${appwriteBucketId}\"")
+
+        manifestPlaceholders["appwriteProjectId"] = appwriteProjectId
     }
 
     buildTypes {
@@ -36,6 +65,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -64,20 +94,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     // Coroutines (async, dibutuhkan Appwrite)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // Glide (load gambar dari URL)
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-
     // Coil (load image di Compose)
     implementation("io.coil-kt:coil-compose:2.6.0")
-
-    // Navigation Component
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
 
     // Material Design
     implementation("com.google.android.material:material:1.11.0")
