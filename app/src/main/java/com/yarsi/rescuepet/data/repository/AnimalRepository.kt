@@ -69,8 +69,17 @@ class AnimalRepository {
         }
     }
 
-    suspend fun updateStatus(id: String, status: String): Result<Unit> {
+    suspend fun updateStatus(id: String, status: String, userId: String): Result<Unit> {
         return try {
+            val animal = db.getDocument(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                documentId = id
+            )
+            val posterId = animal.data["posterId"] as? String ?: ""
+            if (posterId != userId) {
+                return Result.Error("Anda bukan pemilik postingan ini")
+            }
             db.updateDocument(
                 databaseId = Constants.DATABASE_ID,
                 collectionId = Constants.COLLECTION_ANIMALS,
@@ -83,8 +92,17 @@ class AnimalRepository {
         }
     }
 
-    suspend fun deleteAnimal(id: String): Result<Unit> {
+    suspend fun deleteAnimal(id: String, userId: String): Result<Unit> {
         return try {
+            val animal = db.getDocument(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                documentId = id
+            )
+            val posterId = animal.data["posterId"] as? String ?: ""
+            if (posterId != userId) {
+                return Result.Error("Anda bukan pemilik postingan ini")
+            }
             db.deleteDocument(
                 databaseId = Constants.DATABASE_ID,
                 collectionId = Constants.COLLECTION_ANIMALS,

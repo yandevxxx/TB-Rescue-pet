@@ -49,9 +49,13 @@ class DetailViewModel : ViewModel() {
     val deleteState = MutableLiveData<Result<Unit>>()
 
     fun updateStatus(animalId: String, newStatus: String) {
+        val uid = currentUserId.value ?: run {
+            updateState.value = Result.Error("Silakan login terlebih dahulu")
+            return
+        }
         updateState.value = Result.Loading
         viewModelScope.launch {
-            val result = animalRepo.updateStatus(animalId, newStatus)
+            val result = animalRepo.updateStatus(animalId, newStatus, uid)
             updateState.value = result
             if (result is Result.Success) {
                 reloadAnimal()
@@ -60,9 +64,13 @@ class DetailViewModel : ViewModel() {
     }
 
     fun deleteAnimal(animalId: String) {
+        val uid = currentUserId.value ?: run {
+            deleteState.value = Result.Error("Silakan login terlebih dahulu")
+            return
+        }
         deleteState.value = Result.Loading
         viewModelScope.launch {
-            deleteState.value = animalRepo.deleteAnimal(animalId)
+            deleteState.value = animalRepo.deleteAnimal(animalId, uid)
         }
     }
 }
