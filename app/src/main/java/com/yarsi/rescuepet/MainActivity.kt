@@ -23,11 +23,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,6 +54,7 @@ import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.home.HomeViewModel
 import com.yarsi.rescuepet.ui.post.PostAnimalActivity
+import com.yarsi.rescuepet.ui.search.SearchActivity
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 
 class MainActivity : ComponentActivity() {
@@ -69,6 +72,9 @@ class MainActivity : ComponentActivity() {
                     viewModel = homeViewModel,
                     onAddAnimal = {
                         startActivity(Intent(this, PostAnimalActivity::class.java))
+                    },
+                    onSearchNearby = {
+                        startActivity(Intent(this, SearchActivity::class.java))
                     }
                 )
             }
@@ -80,7 +86,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DashboardScreen(
     viewModel: HomeViewModel,
-    onAddAnimal: () -> Unit
+    onAddAnimal: () -> Unit,
+    onSearchNearby: () -> Unit
 ) {
     val animals by viewModel.animals.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
@@ -96,6 +103,11 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text("RescuePet") },
+                actions = {
+                    IconButton(onClick = onSearchNearby) {
+                        Icon(Icons.Default.Search, contentDescription = "Cari Terdekat")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
