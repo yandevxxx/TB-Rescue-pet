@@ -46,6 +46,12 @@
             android:theme="@style/Theme.RescuePet" />
 
         <activity
+            android:name=".ui.post.PostAnimalActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.RescuePet" />
+
+        <activity
             android:name="io.appwrite.views.CallbackActivity"
             android:exported="true">
             <intent-filter>
