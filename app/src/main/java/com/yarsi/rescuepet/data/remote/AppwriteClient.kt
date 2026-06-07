@@ -10,9 +10,10 @@ import com.yarsi.rescuepet.utils.Constants
 
 object AppwriteClient {
     private lateinit var client: Client
+    private var realtime: Realtime? = null
 
     fun initialize(context: Context) {
-        client = Client(context)
+        client = Client(context.applicationContext)
             .setEndpoint(Constants.APPWRITE_ENDPOINT)
             .setProject(Constants.APPWRITE_PROJECT_ID)
             .setSelfSigned(false)
@@ -21,5 +22,10 @@ object AppwriteClient {
     fun getAccount() = Account(client)
     fun getDatabases() = Databases(client)
     fun getStorage() = Storage(client)
-    fun getRealtime() = Realtime(client)
+    fun getRealtime(): Realtime {
+        if (realtime == null) {
+            realtime = Realtime(client)
+        }
+        return realtime!!
+    }
 }

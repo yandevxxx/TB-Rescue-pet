@@ -54,6 +54,7 @@ import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.home.HomeViewModel
 import com.yarsi.rescuepet.ui.post.PostAnimalActivity
+import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
 import com.yarsi.rescuepet.ui.search.SearchActivity
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 
@@ -75,6 +76,12 @@ class MainActivity : ComponentActivity() {
                     },
                     onSearchNearby = {
                         startActivity(Intent(this, SearchActivity::class.java))
+                    },
+                    onAnimalClick = { animalId ->
+                        Intent(this, AnimalDetailActivity::class.java).apply {
+                            putExtra("animal_id", animalId)
+                            startActivity(this)
+                        }
                     }
                 )
             }
@@ -87,7 +94,8 @@ class MainActivity : ComponentActivity() {
 fun DashboardScreen(
     viewModel: HomeViewModel,
     onAddAnimal: () -> Unit,
-    onSearchNearby: () -> Unit
+    onSearchNearby: () -> Unit,
+    onAnimalClick: (String) -> Unit
 ) {
     val animals by viewModel.animals.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
@@ -152,7 +160,7 @@ fun DashboardScreen(
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     items(animals, key = { it.id }) { animal ->
-                        AnimalCard(animal = animal)
+                        AnimalCard(animal = animal, onClick = { onAnimalClick(animal.id) })
                     }
                 }
             }
@@ -161,10 +169,11 @@ fun DashboardScreen(
 }
 
 @Composable
-fun AnimalCard(animal: Animal) {
+fun AnimalCard(animal: Animal, onClick: () -> Unit = {}) {
     val storageRepo = remember { StorageRepository() }
 
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

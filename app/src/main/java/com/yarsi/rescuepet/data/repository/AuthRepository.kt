@@ -9,6 +9,7 @@ class AuthRepository {
 
     suspend fun login(email: String, password: String): Result<String> {
         return try {
+            try { account.deleteSession("current") } catch (_: Exception) {}
             val session = account.createEmailPasswordSession(email, password)
             Result.Success(session.userId)
         } catch (e: AppwriteException) {
@@ -18,6 +19,7 @@ class AuthRepository {
 
     suspend fun register(email: String, password: String, name: String): Result<String> {
         return try {
+            try { account.deleteSession("current") } catch (_: Exception) {}
             val user = account.create("unique()", email, password, name)
             Result.Success(user.id)
         } catch (e: AppwriteException) {

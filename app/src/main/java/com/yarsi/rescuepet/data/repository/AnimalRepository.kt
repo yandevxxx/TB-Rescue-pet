@@ -56,6 +56,19 @@ class AnimalRepository {
         }
     }
 
+    suspend fun getAnimalById(id: String): Result<Animal> {
+        return try {
+            val doc = db.getDocument(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                documentId = id
+            )
+            Result.Success(doc.toAnimal())
+        } catch (e: AppwriteException) {
+            Result.Error(e.message ?: "Gagal load data")
+        }
+    }
+
     suspend fun updateStatus(id: String, status: String): Result<Unit> {
         return try {
             db.updateDocument(

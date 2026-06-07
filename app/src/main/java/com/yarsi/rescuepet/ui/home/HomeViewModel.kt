@@ -37,6 +37,7 @@ class HomeViewModel : ViewModel() {
     }
 
     fun subscribeRealtime() {
+        unsubscribeRealtime()
         val realtime = AppwriteClient.getRealtime()
         val channel = "databases.${Constants.DATABASE_ID}.collections.${Constants.COLLECTION_ANIMALS}.documents"
         realtimeSubscription = realtime.subscribe(channel) {

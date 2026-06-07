@@ -24,7 +24,7 @@ class StorageRepository {
     }
 
     fun getImageUrl(imageId: String): String {
-        return "https://cloud.appwrite.io/v1/storage/buckets/" +
+        return "${Constants.APPWRITE_ENDPOINT}/storage/buckets/" +
                 "${Constants.BUCKET_ID}/files/$imageId/view?" +
                 "project=${Constants.APPWRITE_PROJECT_ID}"
     }
