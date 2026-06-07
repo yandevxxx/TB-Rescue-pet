@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         AppwriteClient.initialize(this)
         homeViewModel.loadAnimals()
+        homeViewModel.subscribeRealtime()
         enableEdgeToEdge()
         setContent {
             RescuePetTheme {
