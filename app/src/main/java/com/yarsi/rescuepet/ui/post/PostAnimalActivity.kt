@@ -118,11 +118,9 @@ fun PostAnimalScreen(
     LaunchedEffect(postState) {
         when (val state = postState) {
             is Result.Success -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar("Berhasil diposting")
-                    kotlinx.coroutines.delay(1200)
-                    onSuccess()
-                }
+                scope.launch { snackbarHostState.showSnackbar("Berhasil diposting") }
+                kotlinx.coroutines.delay(1200)
+                onSuccess()
             }
             is Result.Error -> {
                 scope.launch { snackbarHostState.showSnackbar(state.message) }

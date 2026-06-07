@@ -112,11 +112,9 @@ fun DetailScreen(
     LaunchedEffect(deleteState) {
         when (val state = deleteState) {
             is Result.Success -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar("Postingan berhasil dihapus")
-                    kotlinx.coroutines.delay(800)
-                    onBack()
-                }
+                scope.launch { snackbarHostState.showSnackbar("Postingan berhasil dihapus") }
+                kotlinx.coroutines.delay(800)
+                onBack()
             }
             is Result.Error -> {
                 scope.launch { snackbarHostState.showSnackbar(state.message) }
@@ -239,6 +237,7 @@ fun DetailContent(
                     "available" -> "Tersedia"
                     "adopted" -> "Teradopsi"
                     "found" -> "Sudah Ditemukan"
+                    "reunited" -> "Sudah Ditemukan"
                     else -> animal.status
                 },
                 style = MaterialTheme.typography.labelMedium,

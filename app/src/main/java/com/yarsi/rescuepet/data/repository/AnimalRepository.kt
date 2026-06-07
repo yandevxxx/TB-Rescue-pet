@@ -1,7 +1,9 @@
 // File: data/repository/AnimalRepository.kt
 package com.yarsi.rescuepet.data.repository
 
+import io.appwrite.Permission
 import io.appwrite.Query
+import io.appwrite.Role
 import io.appwrite.exceptions.AppwriteException
 import io.appwrite.models.Document
 import com.yarsi.rescuepet.data.model.Animal
@@ -30,10 +32,15 @@ class AnimalRepository {
                     "posterId" to animal.posterId,
                     "posterContact" to animal.posterContact,
                     "category" to animal.category
+                ),
+                permissions = listOf(
+                    Permission.read(Role.any()),
+                    Permission.update(Role.user(animal.posterId)),
+                    Permission.delete(Role.user(animal.posterId))
                 )
             )
             Result.Success(doc.id)
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(e.message ?: "Gagal posting")
         }
     }
@@ -87,7 +94,7 @@ class AnimalRepository {
                 data = mapOf("status" to status)
             )
             Result.Success(Unit)
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(e.message ?: "Gagal update")
         }
     }
@@ -109,7 +116,7 @@ class AnimalRepository {
                 documentId = id
             )
             Result.Success(Unit)
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(e.message ?: "Gagal hapus")
         }
     }

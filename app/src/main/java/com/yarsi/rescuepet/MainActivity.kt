@@ -291,6 +291,7 @@ fun StatusChip(status: String) {
         "available" -> "Tersedia"
         "adopted" -> "Teradopsi"
         "found" -> "Sudah Ditemukan"
+        "reunited" -> "Sudah Ditemukan"
         else -> status
     }
     Text(
