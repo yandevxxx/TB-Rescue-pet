@@ -9,6 +9,7 @@ import io.appwrite.models.Document
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.utils.Constants
+import com.yarsi.rescuepet.utils.ErrorMapper
 import com.yarsi.rescuepet.utils.Result
 
 class AnimalRepository {
@@ -42,7 +43,7 @@ class AnimalRepository {
             )
             Result.Success(doc.id)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Gagal posting")
+            Result.Error(ErrorMapper.map(e, "Gagal posting"))
         }
     }
 
@@ -60,7 +61,7 @@ class AnimalRepository {
             )
             Result.Success(docs.documents.map { it.toAnimal() })
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Gagal load data")
+            Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
 
@@ -85,7 +86,38 @@ class AnimalRepository {
             val lastId = if (docs.documents.size >= limit) docs.documents.last().id else null
             Result.Success(Pair(animals, lastId))
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Gagal load data")
+            Result.Error(ErrorMapper.map(e, "Gagal load data"))
+        }
+    }
+
+    suspend fun searchNearby(
+        userLat: Double,
+        userLon: Double,
+        radiusKm: Double = 10.0,
+        category: String? = null
+    ): Result<List<Animal>> {
+        return try {
+            val queries = mutableListOf<String>()
+            if (category != null) queries.add(Query.equal("category", category))
+
+            val latDelta = radiusKm / 111.0
+            val lonDelta = radiusKm / (111.0 * kotlin.math.cos(Math.toRadians(userLat)))
+            queries.add(Query.greaterThan("latitude", userLat - latDelta))
+            queries.add(Query.lessThan("latitude", userLat + latDelta))
+            queries.add(Query.greaterThan("longitude", userLon - lonDelta))
+            queries.add(Query.lessThan("longitude", userLon + lonDelta))
+
+            queries.add(Query.orderDesc("\$createdAt"))
+            queries.add(Query.limit(100))
+
+            val docs = db.listDocuments(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                queries = queries
+            )
+            Result.Success(docs.documents.map { it.toAnimal() })
+        } catch (e: AppwriteException) {
+            Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
 
@@ -98,7 +130,7 @@ class AnimalRepository {
             )
             Result.Success(doc.toAnimal())
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Gagal load data")
+            Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
 
@@ -121,7 +153,7 @@ class AnimalRepository {
             )
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Gagal update")
+            Result.Error(ErrorMapper.map(e, "Gagal update"))
         }
     }
 
@@ -149,7 +181,7 @@ class AnimalRepository {
             )
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Gagal hapus")
+            Result.Error(ErrorMapper.map(e, "Gagal hapus"))
         }
     }
 

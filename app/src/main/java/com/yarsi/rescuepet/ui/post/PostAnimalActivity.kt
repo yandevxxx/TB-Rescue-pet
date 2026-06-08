@@ -1,5 +1,7 @@
 package com.yarsi.rescuepet.ui.post
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,6 +9,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -108,6 +114,21 @@ fun PostAnimalScreen(
     var contactError by remember { mutableStateOf<String?>(null) }
     var latitudeError by remember { mutableStateOf<String?>(null) }
     var longitudeError by remember { mutableStateOf<String?>(null) }
+    var isGettingLocation by remember { mutableStateOf(false) }
+
+    val locationPermissionGranted = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) getCurrentLocation(context, { lat, lon ->
+            latitude = "%.6f".format(lat)
+            longitude = "%.6f".format(lon)
+            isGettingLocation = false
+        }, { isGettingLocation = false })
+    }
 
     val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
     val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
@@ -284,6 +305,32 @@ fun PostAnimalScreen(
                 )
             }
 
+            OutlinedButton(
+                onClick = {
+                    isGettingLocation = true
+                    if (locationPermissionGranted) {
+                        getCurrentLocation(context, { lat, lon ->
+                            latitude = "%.6f".format(lat)
+                            longitude = "%.6f".format(lon)
+                            isGettingLocation = false
+                        }, { isGettingLocation = false })
+                    } else {
+                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isGettingLocation
+            ) {
+                if (isGettingLocation) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text("Gunakan Lokasi Saya")
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -386,6 +433,37 @@ private fun validateLongitude(lon: String): String? {
     if (value == null) return "Longitude tidak valid"
     if (value < -180.0 || value > 180.0) return "Longitude harus antara -180 dan 180"
     return null
+}
+
+private fun getCurrentLocation(
+    context: android.content.Context,
+    onSuccess: (Double, Double) -> Unit,
+    onFailure: () -> Unit
+) {
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    if (ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        onFailure()
+        return
+    }
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+        if (location != null) {
+            onSuccess(location.latitude, location.longitude)
+        } else {
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                CancellationTokenSource().token
+            ).addOnSuccessListener { currentLocation ->
+                if (currentLocation != null) {
+                    onSuccess(currentLocation.latitude, currentLocation.longitude)
+                } else {
+                    onFailure()
+                }
+            }.addOnFailureListener { onFailure() }
+        }
+    }.addOnFailureListener { onFailure() }
 }
 
 private fun uriToFile(context: android.content.Context, uri: Uri): File? {

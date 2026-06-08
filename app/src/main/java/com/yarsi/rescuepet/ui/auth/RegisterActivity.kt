@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.yarsi.rescuepet.MainActivity
+import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.ui.auth.LoginActivity
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
@@ -75,6 +77,7 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
+    var isCheckingSession by remember { mutableStateOf(true) }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -82,6 +85,15 @@ fun RegisterScreen(
     val isLoading by remember { derivedStateOf { registerState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val session = AuthRepository().getCurrentUser()
+        if (session is Result.Success) {
+            onRegisterSuccess()
+            return@LaunchedEffect
+        }
+        isCheckingSession = false
+    }
 
     LaunchedEffect(registerState) {
         when (val state = registerState) {
@@ -91,6 +103,13 @@ fun RegisterScreen(
             }
             else -> {}
         }
+    }
+
+    if (isCheckingSession) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->

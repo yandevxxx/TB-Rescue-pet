@@ -40,7 +40,7 @@ class SearchViewModel : ViewModel() {
         _userLocation.value = Pair(userLat, userLon)
         _isLoading.value = true
         viewModelScope.launch {
-            when (val result = repository.getAnimals()) {
+            when (val result = repository.searchNearby(userLat, userLon)) {
                 is Result.Success -> {
                     val filtered = filterByDistance(result.data, userLat, userLon, 10.0)
                     _nearbyAnimals.value = filtered

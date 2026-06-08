@@ -4,6 +4,7 @@ import io.appwrite.exceptions.AppwriteException
 import io.appwrite.models.InputFile
 import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.utils.Constants
+import com.yarsi.rescuepet.utils.ErrorMapper
 import com.yarsi.rescuepet.utils.Result
 import java.io.File
 
@@ -19,7 +20,7 @@ class StorageRepository {
             )
             Result.Success(uploaded.id)
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Gagal upload foto")
+            Result.Error(ErrorMapper.map(e, "Gagal upload foto"))
         }
     }
 

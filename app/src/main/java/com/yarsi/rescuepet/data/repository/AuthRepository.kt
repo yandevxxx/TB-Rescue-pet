@@ -3,6 +3,7 @@ package com.yarsi.rescuepet.data.repository
 import io.appwrite.exceptions.AppwriteException
 import com.yarsi.rescuepet.data.model.UserData
 import com.yarsi.rescuepet.data.remote.AppwriteClient
+import com.yarsi.rescuepet.utils.ErrorMapper
 import com.yarsi.rescuepet.utils.Result
 
 class AuthRepository {
@@ -14,7 +15,7 @@ class AuthRepository {
             val session = account.createEmailPasswordSession(email, password)
             Result.Success(session.userId)
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Login gagal")
+            Result.Error(ErrorMapper.map(e, "Login gagal"))
         }
     }
 
@@ -29,7 +30,7 @@ class AuthRepository {
             }
             Result.Success(user.id)
         } catch (e: AppwriteException) {
-            Result.Error(e.message ?: "Registrasi gagal")
+            Result.Error(ErrorMapper.map(e, "Registrasi gagal"))
         }
     }
 
@@ -38,7 +39,7 @@ class AuthRepository {
             val user = account.get()
             Result.Success(UserData(user.id, user.name))
         } catch (e: AppwriteException) {
-            Result.Error("Tidak ada sesi aktif")
+            Result.Error(ErrorMapper.map(e, "Tidak ada sesi aktif"))
         }
     }
 
