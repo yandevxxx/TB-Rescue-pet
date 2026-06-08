@@ -178,14 +178,14 @@ fun SearchScreen(
                     )
                 }
                 else -> {
+                    val storageRepo = remember { StorageRepository() }
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(nearbyAnimals, key = { it.animal.id }) { item ->
-                            val storageRepo = remember { StorageRepository() }
-                    NearbyAnimalCard(item = item, storageRepo = storageRepo, onClick = { onAnimalClick(item.animal.id) })
+                            NearbyAnimalCard(item = item, storageRepo = storageRepo, onClick = { onAnimalClick(item.animal.id) })
                         }
                     }
                 }
