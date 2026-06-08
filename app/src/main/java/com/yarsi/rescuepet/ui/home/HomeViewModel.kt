@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.appwrite.models.RealtimeSubscription
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.remote.AppwriteClient
@@ -17,6 +19,7 @@ class HomeViewModel : ViewModel() {
     private val repository = AnimalRepository()
     private var realtimeSubscription: RealtimeSubscription? = null
     private var currentCategory: String? = null
+    private var debounceJob: Job? = null
 
     private val _animals = MutableLiveData<List<Animal>>()
     val animals: LiveData<List<Animal>> = _animals
@@ -53,7 +56,11 @@ class HomeViewModel : ViewModel() {
         val realtime = AppwriteClient.getRealtime()
         val channel = "databases.${Constants.DATABASE_ID}.collections.${Constants.COLLECTION_ANIMALS}.documents"
         realtimeSubscription = realtime.subscribe(channel) {
-            loadAnimals(currentCategory)
+            debounceJob?.cancel()
+            debounceJob = viewModelScope.launch {
+                delay(500)
+                loadAnimals(currentCategory)
+            }
         }
     }
 
