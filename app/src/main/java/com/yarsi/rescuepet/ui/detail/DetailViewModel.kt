@@ -1,5 +1,6 @@
 package com.yarsi.rescuepet.ui.detail
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,32 +14,45 @@ class DetailViewModel : ViewModel() {
     private val animalRepo = AnimalRepository()
     private val authRepo = AuthRepository()
 
-    val animal = MutableLiveData<Animal?>()
-    val isLoading = MutableLiveData<Boolean>()
-    val error = MutableLiveData<String?>()
-    val updateState = MutableLiveData<Result<Unit>>()
-    val currentUserId = MutableLiveData<String?>()
+    private val _animal = MutableLiveData<Animal?>()
+    val animal: LiveData<Animal?> = _animal
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _updateState = MutableLiveData<Result<Unit>>()
+    val updateState: LiveData<Result<Unit>> = _updateState
+
+    private val _currentUserId = MutableLiveData<String?>()
+    val currentUserId: LiveData<String?> = _currentUserId
+
+    private val _deleteState = MutableLiveData<Result<Unit>>()
+    val deleteState: LiveData<Result<Unit>> = _deleteState
+
     private var currentAnimalId: String? = null
 
     fun loadAnimal(id: String) {
         currentAnimalId = id
-        isLoading.value = true
+        _isLoading.value = true
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()
             if (userResult is Result.Success) {
-                currentUserId.value = userResult.data
+                _currentUserId.value = userResult.data
             }
             when (val result = animalRepo.getAnimalById(id)) {
                 is Result.Success -> {
-                    animal.value = result.data
-                    error.value = null
+                    _animal.value = result.data
+                    _error.value = null
                 }
                 is Result.Error -> {
-                    error.value = result.message
+                    _error.value = result.message
                 }
                 else -> {}
             }
-            isLoading.value = false
+            _isLoading.value = false
         }
     }
 
@@ -46,17 +60,15 @@ class DetailViewModel : ViewModel() {
         currentAnimalId?.let { loadAnimal(it) }
     }
 
-    val deleteState = MutableLiveData<Result<Unit>>()
-
     fun updateStatus(animalId: String, newStatus: String) {
-        val uid = currentUserId.value ?: run {
-            updateState.value = Result.Error("Silakan login terlebih dahulu")
+        val uid = _currentUserId.value ?: run {
+            _updateState.value = Result.Error("Silakan login terlebih dahulu")
             return
         }
-        updateState.value = Result.Loading
+        _updateState.value = Result.Loading
         viewModelScope.launch {
             val result = animalRepo.updateStatus(animalId, newStatus, uid)
-            updateState.value = result
+            _updateState.value = result
             if (result is Result.Success) {
                 reloadAnimal()
             }
@@ -64,13 +76,13 @@ class DetailViewModel : ViewModel() {
     }
 
     fun deleteAnimal(animalId: String) {
-        val uid = currentUserId.value ?: run {
-            deleteState.value = Result.Error("Silakan login terlebih dahulu")
+        val uid = _currentUserId.value ?: run {
+            _deleteState.value = Result.Error("Silakan login terlebih dahulu")
             return
         }
-        deleteState.value = Result.Loading
+        _deleteState.value = Result.Loading
         viewModelScope.launch {
-            deleteState.value = animalRepo.deleteAnimal(animalId, uid)
+            _deleteState.value = animalRepo.deleteAnimal(animalId, uid)
         }
     }
 }

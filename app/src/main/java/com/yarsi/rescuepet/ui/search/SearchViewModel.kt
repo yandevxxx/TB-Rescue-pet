@@ -1,5 +1,6 @@
 package com.yarsi.rescuepet.ui.search
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,39 +12,46 @@ import com.yarsi.rescuepet.utils.Result
 class SearchViewModel : ViewModel() {
     private val repository = AnimalRepository()
 
-    val nearbyAnimals = MutableLiveData<List<AnimalWithDistance>>()
-    val isLoading = MutableLiveData<Boolean>()
-    val error = MutableLiveData<String?>()
-    val userLocation = MutableLiveData<Pair<Double, Double>?>()
+    private val _nearbyAnimals = MutableLiveData<List<AnimalWithDistance>>()
+    val nearbyAnimals: LiveData<List<AnimalWithDistance>> = _nearbyAnimals
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _userLocation = MutableLiveData<Pair<Double, Double>?>()
+    val userLocation: LiveData<Pair<Double, Double>?> = _userLocation
 
     fun onLocationError(message: String) {
-        error.value = message
+        _error.value = message
     }
 
     fun onLocationUnavailable() {
-        error.value = "Lokasi tidak tersedia, nyalakan GPS"
+        _error.value = "Lokasi tidak tersedia, nyalakan GPS"
     }
 
     fun onLocationFailure() {
-        error.value = "Gagal mendapatkan lokasi"
+        _error.value = "Gagal mendapatkan lokasi"
     }
 
     fun searchNearby(userLat: Double, userLon: Double) {
-        userLocation.value = Pair(userLat, userLon)
-        isLoading.value = true
+        _userLocation.value = Pair(userLat, userLon)
+        _isLoading.value = true
         viewModelScope.launch {
             when (val result = repository.getAnimals()) {
                 is Result.Success -> {
                     val filtered = filterByDistance(result.data, userLat, userLon, 10.0)
-                    nearbyAnimals.value = filtered
-                    error.value = null
+                    _nearbyAnimals.value = filtered
+                    _error.value = null
                 }
                 is Result.Error -> {
-                    error.value = result.message
+                    _error.value = result.message
                 }
                 else -> {}
             }
-            isLoading.value = false
+            _isLoading.value = false
         }
     }
 

@@ -1,5 +1,6 @@
 package com.yarsi.rescuepet.ui.post
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,18 +17,19 @@ class PostViewModel : ViewModel() {
     private val storageRepo = StorageRepository()
     private val authRepo = AuthRepository()
 
-    val postState = MutableLiveData<Result<String>>()
+    private val _postState = MutableLiveData<Result<String>>()
+    val postState: LiveData<Result<String>> = _postState
 
     fun postAnimal(animal: Animal, imageFile: File?, imagePickFailed: Boolean = false) {
         if (imagePickFailed) {
-            postState.value = Result.Error("Gagal memproses foto, coba pilih ulang")
+            _postState.value = Result.Error("Gagal memproses foto, coba pilih ulang")
             return
         }
-        postState.value = Result.Loading
+        _postState.value = Result.Loading
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()
             if (userResult is Result.Error) {
-                postState.value = Result.Error("Silakan login terlebih dahulu")
+                _postState.value = Result.Error("Silakan login terlebih dahulu")
                 return@launch
             }
             val userId = (userResult as Result.Success).data
@@ -36,7 +38,7 @@ class PostViewModel : ViewModel() {
             if (imageFile != null) {
                 val uploadResult = storageRepo.uploadImage(imageFile)
                 if (uploadResult is Result.Error) {
-                    postState.value = uploadResult
+                    _postState.value = uploadResult
                     return@launch
                 }
                 imageId = (uploadResult as Result.Success).data
@@ -45,7 +47,7 @@ class PostViewModel : ViewModel() {
             }
 
             val animalWithMeta = animal.copy(imageId = imageId, posterId = userId)
-            postState.value = animalRepo.postAnimal(animalWithMeta)
+            _postState.value = animalRepo.postAnimal(animalWithMeta)
         }
     }
 }

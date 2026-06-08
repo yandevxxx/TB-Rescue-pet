@@ -1,5 +1,6 @@
 package com.yarsi.rescuepet.ui.home
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,26 +18,33 @@ class HomeViewModel : ViewModel() {
     private var realtimeSubscription: RealtimeSubscription? = null
     private var currentCategory: String? = null
 
-    val animals = MutableLiveData<List<Animal>>()
-    val isLoading = MutableLiveData<Boolean>()
-    val error = MutableLiveData<String?>()
-    val selectedFilter = MutableLiveData<String?>(null)
+    private val _animals = MutableLiveData<List<Animal>>()
+    val animals: LiveData<List<Animal>> = _animals
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _selectedFilter = MutableLiveData<String?>(null)
+    val selectedFilter: LiveData<String?> = _selectedFilter
 
     fun loadAnimals(category: String? = null) {
         currentCategory = category
-        isLoading.value = true
+        _isLoading.value = true
         viewModelScope.launch {
             when (val result = repository.getAnimals(category)) {
                 is Result.Success -> {
-                    animals.value = result.data
-                    error.value = null
+                    _animals.value = result.data
+                    _error.value = null
                 }
                 is Result.Error -> {
-                    error.value = result.message
+                    _error.value = result.message
                 }
                 else -> {}
             }
-            isLoading.value = false
+            _isLoading.value = false
         }
     }
 
@@ -55,7 +63,7 @@ class HomeViewModel : ViewModel() {
     }
 
     fun setFilter(category: String?) {
-        selectedFilter.value = category
+        _selectedFilter.value = category
         loadAnimals(category)
     }
 
