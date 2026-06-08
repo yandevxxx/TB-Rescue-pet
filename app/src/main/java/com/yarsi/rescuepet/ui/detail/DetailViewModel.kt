@@ -40,7 +40,7 @@ class DetailViewModel : ViewModel() {
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()
             if (userResult is Result.Success) {
-                _currentUserId.value = userResult.data
+                _currentUserId.value = userResult.data.id
             }
             when (val result = animalRepo.getAnimalById(id)) {
                 is Result.Success -> {

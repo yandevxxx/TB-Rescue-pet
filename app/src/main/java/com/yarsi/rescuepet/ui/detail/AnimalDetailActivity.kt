@@ -254,6 +254,9 @@ fun DetailContent(
 
         DetailRow("Jenis", animal.type)
         DetailRow("Usia", if (animal.age > 0) "${animal.age} bulan" else "Belum diketahui")
+        if (animal.posterName.isNotEmpty()) {
+            DetailRow("Diposting", animal.posterName)
+        }
         if (animal.description.isNotEmpty()) {
             Text(
                 text = animal.description,

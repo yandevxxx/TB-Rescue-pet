@@ -36,7 +36,7 @@ class PostViewModel : ViewModel() {
                 _postState.value = Result.Error("Silakan login terlebih dahulu")
                 return@launch
             }
-            val userId = (userResult as Result.Success).data
+            val userData = (userResult as Result.Success).data
 
             var imageId = animal.imageId
             if (imageFile != null) {
@@ -50,7 +50,7 @@ class PostViewModel : ViewModel() {
                 imageFile.delete()
             }
 
-            val animalWithMeta = animal.copy(imageId = imageId, posterId = userId)
+            val animalWithMeta = animal.copy(imageId = imageId, posterId = userData.id, posterName = userData.name)
             _postState.value = animalRepo.postAnimal(animalWithMeta)
         }
     }

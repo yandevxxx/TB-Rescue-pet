@@ -1,6 +1,7 @@
 package com.yarsi.rescuepet.data.repository
 
 import io.appwrite.exceptions.AppwriteException
+import com.yarsi.rescuepet.data.model.UserData
 import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.utils.Result
 
@@ -32,10 +33,10 @@ class AuthRepository {
         }
     }
 
-    suspend fun getCurrentUser(): Result<String> {
+    suspend fun getCurrentUser(): Result<UserData> {
         return try {
             val user = account.get()
-            Result.Success(user.id)
+            Result.Success(UserData(user.id, user.name))
         } catch (e: AppwriteException) {
             Result.Error("Tidak ada sesi aktif")
         }

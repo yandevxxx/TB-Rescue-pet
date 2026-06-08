@@ -30,6 +30,7 @@ class AnimalRepository {
                     "latitude" to animal.latitude,
                     "longitude" to animal.longitude,
                     "posterId" to animal.posterId,
+                    "posterName" to animal.posterName,
                     "posterContact" to animal.posterContact,
                     "category" to animal.category
                 ),
@@ -132,6 +133,7 @@ class AnimalRepository {
         latitude = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
         longitude = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
         posterId = data["posterId"] as? String ?: "",
+        posterName = data["posterName"] as? String ?: "",
         posterContact = data["posterContact"] as? String ?: "",
         category = data["category"] as? String ?: "adoption"
     )

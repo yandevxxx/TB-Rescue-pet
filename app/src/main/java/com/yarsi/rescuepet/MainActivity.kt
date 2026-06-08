@@ -285,6 +285,13 @@ fun AnimalCard(animal: Animal, storageRepo: StorageRepository, onClick: () -> Un
                     StatusChip(animal.status)
                     CategoryChip(animal.category)
                 }
+                if (animal.posterName.isNotEmpty()) {
+                    Text(
+                        text = "oleh: ${animal.posterName}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 if (animal.description.isNotEmpty()) {
                     Text(
                         text = animal.description,
