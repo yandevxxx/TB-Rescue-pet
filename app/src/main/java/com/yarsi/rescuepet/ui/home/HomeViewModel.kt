@@ -98,9 +98,10 @@ class HomeViewModel : ViewModel() {
         loadAnimals(category)
     }
 
-    fun logout() {
+    fun logout(onDone: () -> Unit) {
         viewModelScope.launch {
             AuthRepository().logout()
+            onDone()
         }
     }
 
