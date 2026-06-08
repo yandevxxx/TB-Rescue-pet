@@ -12,7 +12,7 @@ import com.yarsi.rescuepet.utils.Constants
 import com.yarsi.rescuepet.utils.Result
 
 class AnimalRepository {
-    private val db = AppwriteClient.getDatabases()
+    private val db = AppwriteClient.getInstance().getDatabases()
 
     suspend fun postAnimal(animal: Animal): Result<String> {
         return try {
@@ -59,6 +59,31 @@ class AnimalRepository {
                 queries = queries
             )
             Result.Success(docs.documents.map { it.toAnimal() })
+        } catch (e: AppwriteException) {
+            Result.Error(e.message ?: "Gagal load data")
+        }
+    }
+
+    suspend fun getAnimalsPaged(
+        category: String? = null,
+        limit: Int = 20,
+        cursorAfter: String? = null
+    ): Result<Pair<List<Animal>, String?>> {
+        return try {
+            val queries = mutableListOf<String>()
+            if (category != null) queries.add(Query.equal("category", category))
+            queries.add(Query.orderDesc("\$createdAt"))
+            queries.add(Query.limit(limit))
+            if (cursorAfter != null) queries.add(Query.cursorAfter(cursorAfter))
+
+            val docs = db.listDocuments(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                queries = queries
+            )
+            val animals = docs.documents.map { it.toAnimal() }
+            val lastId = if (docs.documents.size >= limit) docs.documents.last().id else null
+            Result.Success(Pair(animals, lastId))
         } catch (e: AppwriteException) {
             Result.Error(e.message ?: "Gagal load data")
         }
@@ -114,7 +139,7 @@ class AnimalRepository {
             val imageId = animal.data["imageId"] as? String ?: ""
             if (imageId.isNotEmpty()) {
                 try {
-                    AppwriteClient.getStorage().deleteFile(Constants.BUCKET_ID, imageId)
+                    AppwriteClient.getInstance().getStorage().deleteFile(Constants.BUCKET_ID, imageId)
                 } catch (_: Exception) {}
             }
             db.deleteDocument(

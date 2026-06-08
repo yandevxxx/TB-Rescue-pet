@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -44,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -113,6 +115,8 @@ fun DashboardScreen(
 ) {
     val animals by viewModel.animals.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
+    val isLoadingMore by viewModel.isLoadingMore.observeAsState(false)
+    val hasMore by viewModel.hasMore.observeAsState(false)
     val error by viewModel.error.observeAsState()
     val selectedFilter by viewModel.selectedFilter.observeAsState()
 
@@ -122,6 +126,19 @@ fun DashboardScreen(
         if (animals.isEmpty()) emptyList() else listOf(null to "Semua Jenis") + animals.map { it.type }.distinct().sorted().map { it to it }
     }
     val storageRepo = remember { StorageRepository() }
+
+    val listState = rememberLazyListState()
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= listState.layoutInfo.totalItemsCount - 3
+        }
+    }
+    LaunchedEffect(shouldLoadMore, hasMore, isLoadingMore) {
+        if (shouldLoadMore && hasMore && !isLoadingMore) {
+            viewModel.loadMore()
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (animals.isEmpty() && !isLoading) {
@@ -222,6 +239,7 @@ fun DashboardScreen(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        state = listState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
@@ -231,6 +249,18 @@ fun DashboardScreen(
                                 storageRepo = storageRepo,
                                 onClick = { onAnimalClick(animal.id) }
                             )
+                        }
+                        if (isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
+                            }
                         }
                     }
                 }

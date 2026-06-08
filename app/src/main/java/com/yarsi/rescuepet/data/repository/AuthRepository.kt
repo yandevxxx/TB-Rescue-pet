@@ -6,7 +6,7 @@ import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.utils.Result
 
 class AuthRepository {
-    private val account = AppwriteClient.getAccount()
+    private val account = AppwriteClient.getInstance().getAccount()
 
     suspend fun login(email: String, password: String): Result<String> {
         return try {

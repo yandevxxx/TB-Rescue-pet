@@ -20,12 +20,19 @@ class HomeViewModel : ViewModel() {
     private var realtimeSubscription: RealtimeSubscription? = null
     private var currentCategory: String? = null
     private var debounceJob: Job? = null
+    private var lastDocId: String? = null
 
     private val _animals = MutableLiveData<List<Animal>>()
     val animals: LiveData<List<Animal>> = _animals
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _isLoadingMore = MutableLiveData(false)
+    val isLoadingMore: LiveData<Boolean> = _isLoadingMore
+
+    private val _hasMore = MutableLiveData(true)
+    val hasMore: LiveData<Boolean> = _hasMore
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
@@ -38,13 +45,23 @@ class HomeViewModel : ViewModel() {
 
     private var allAnimals: List<Animal> = emptyList()
 
+    companion object {
+        private const val PAGE_SIZE = 20
+    }
+
     fun loadAnimals(category: String? = null) {
         currentCategory = category
+        lastDocId = null
+        allAnimals = emptyList()
+        _hasMore.value = true
         _isLoading.value = true
         viewModelScope.launch {
-            when (val result = repository.getAnimals(category)) {
+            when (val result = repository.getAnimalsPaged(category, PAGE_SIZE, null)) {
                 is Result.Success -> {
-                    allAnimals = result.data
+                    val (data, lastId) = result.data
+                    allAnimals = data
+                    lastDocId = lastId
+                    _hasMore.value = lastId != null
                     applyFilters()
                     _error.value = null
                 }
@@ -54,6 +71,25 @@ class HomeViewModel : ViewModel() {
                 else -> {}
             }
             _isLoading.value = false
+        }
+    }
+
+    fun loadMore() {
+        if (_isLoadingMore.value == true || _hasMore.value != true) return
+        _isLoadingMore.value = true
+        viewModelScope.launch {
+            when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, lastDocId)) {
+                is Result.Success -> {
+                    val (data, lastId) = result.data
+                    allAnimals = allAnimals + data
+                    lastDocId = lastId
+                    _hasMore.value = lastId != null
+                    applyFilters()
+                }
+                is Result.Error -> {}
+                else -> {}
+            }
+            _isLoadingMore.value = false
         }
     }
 
@@ -77,7 +113,7 @@ class HomeViewModel : ViewModel() {
 
     fun subscribeRealtime() {
         unsubscribeRealtime()
-        val realtime = AppwriteClient.getRealtime()
+        val realtime = AppwriteClient.getInstance().getRealtime()
         val channel = "databases.${Constants.DATABASE_ID}.collections.${Constants.COLLECTION_ANIMALS}.documents"
         realtimeSubscription = realtime.subscribe(channel) {
             debounceJob?.cancel()

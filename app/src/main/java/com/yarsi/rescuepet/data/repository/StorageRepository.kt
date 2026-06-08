@@ -8,7 +8,7 @@ import com.yarsi.rescuepet.utils.Result
 import java.io.File
 
 class StorageRepository {
-    private val storage = AppwriteClient.getStorage()
+    private val storage = AppwriteClient.getInstance().getStorage()
 
     suspend fun uploadImage(file: File): Result<String> {
         return try {
