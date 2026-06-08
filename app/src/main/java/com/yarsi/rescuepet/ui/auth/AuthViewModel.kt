@@ -18,6 +18,11 @@ class AuthViewModel : ViewModel() {
     val registerState: LiveData<Result<String>> = _registerState
 
     fun login(email: String, password: String) {
+        val validationError = validateEmail(email) ?: validatePassword(password)
+        if (validationError != null) {
+            _loginState.value = Result.Error(validationError)
+            return
+        }
         _loginState.value = Result.Loading
         viewModelScope.launch {
             _loginState.value = repository.login(email, password)
@@ -25,9 +30,26 @@ class AuthViewModel : ViewModel() {
     }
 
     fun register(email: String, password: String, name: String) {
+        val validationError = validateName(name) ?: validateEmail(email) ?: validatePassword(password)
+        if (validationError != null) {
+            _registerState.value = Result.Error(validationError)
+            return
+        }
         _registerState.value = Result.Loading
         viewModelScope.launch {
             _registerState.value = repository.register(email, password, name)
         }
+    }
+
+    private fun validateName(name: String): String? {
+        return if (name.isBlank()) "Nama harus diisi" else null
+    }
+
+    private fun validateEmail(email: String): String? {
+        return if (!email.matches(Regex("^[\\w.-]+@[\\w.-]+\\.\\w{2,}$"))) "Format email tidak valid" else null
+    }
+
+    private fun validatePassword(password: String): String? {
+        return if (password.length < 8) "Password minimal 8 karakter" else null
     }
 }
