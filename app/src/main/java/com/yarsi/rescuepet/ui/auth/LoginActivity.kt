@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,7 +40,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import com.yarsi.rescuepet.MainActivity
 import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
@@ -51,14 +51,6 @@ class LoginActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        lifecycleScope.launch {
-            val session = AuthRepository().getCurrentUser()
-            if (session is Result.Success) {
-                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                finish()
-                return@launch
-            }
-        }
         setContent {
             RescuePetTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -84,12 +76,22 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
+    var isCheckingSession by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val loginState by viewModel.loginState.observeAsState()
     val isLoading by remember { derivedStateOf { loginState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val session = AuthRepository().getCurrentUser()
+        if (session is Result.Success) {
+            onLoginSuccess()
+            return@LaunchedEffect
+        }
+        isCheckingSession = false
+    }
 
     LaunchedEffect(loginState) {
         when (val state = loginState) {
@@ -99,6 +101,13 @@ fun LoginScreen(
             }
             else -> {}
         }
+    }
+
+    if (isCheckingSession) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
