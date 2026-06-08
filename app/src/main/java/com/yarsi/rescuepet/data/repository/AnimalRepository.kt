@@ -111,6 +111,12 @@ class AnimalRepository {
             if (posterId != userId) {
                 return Result.Error("Anda bukan pemilik postingan ini")
             }
+            val imageId = animal.data["imageId"] as? String ?: ""
+            if (imageId.isNotEmpty()) {
+                try {
+                    AppwriteClient.getStorage().deleteFile(Constants.BUCKET_ID, imageId)
+                } catch (_: Exception) {}
+            }
             db.deleteDocument(
                 databaseId = Constants.DATABASE_ID,
                 collectionId = Constants.COLLECTION_ANIMALS,
