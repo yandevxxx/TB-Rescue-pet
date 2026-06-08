@@ -22,36 +22,40 @@ class PostViewModel : ViewModel() {
 
     fun postAnimal(animal: Animal, imageFile: File?, imagePickFailed: Boolean = false) {
         if (imagePickFailed) {
+            imageFile?.delete()
             _postState.value = Result.Error("Gagal memproses foto, coba pilih ulang")
             return
         }
         if (imageFile != null && imageFile.length() > 5 * 1024 * 1024) {
+            imageFile.delete()
             _postState.value = Result.Error("Ukuran file maksimal 5 MB")
             return
         }
         _postState.value = Result.Loading
         viewModelScope.launch {
-            val userResult = authRepo.getCurrentUser()
-            if (userResult is Result.Error) {
-                _postState.value = Result.Error("Silakan login terlebih dahulu")
-                return@launch
-            }
-            val userData = (userResult as Result.Success).data
-
-            var imageId = animal.imageId
-            if (imageFile != null) {
-                val uploadResult = storageRepo.uploadImage(imageFile)
-                if (uploadResult is Result.Error) {
-                    _postState.value = uploadResult
+            try {
+                val userResult = authRepo.getCurrentUser()
+                if (userResult is Result.Error) {
+                    _postState.value = Result.Error("Silakan login terlebih dahulu")
                     return@launch
                 }
-                imageId = (uploadResult as Result.Success).data
+                val userData = (userResult as Result.Success).data
 
-                imageFile.delete()
+                var imageId = animal.imageId
+                if (imageFile != null) {
+                    val uploadResult = storageRepo.uploadImage(imageFile)
+                    if (uploadResult is Result.Error) {
+                        _postState.value = uploadResult
+                        return@launch
+                    }
+                    imageId = (uploadResult as Result.Success).data
+                }
+
+                val animalWithMeta = animal.copy(imageId = imageId, posterId = userData.id, posterName = userData.name)
+                _postState.value = animalRepo.postAnimal(animalWithMeta)
+            } finally {
+                imageFile?.delete()
             }
-
-            val animalWithMeta = animal.copy(imageId = imageId, posterId = userData.id, posterName = userData.name)
-            _postState.value = animalRepo.postAnimal(animalWithMeta)
         }
     }
 }
