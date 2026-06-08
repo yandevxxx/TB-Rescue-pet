@@ -116,6 +116,10 @@ fun DashboardScreen(
     val selectedFilter by viewModel.selectedFilter.observeAsState()
 
     val filterOptions = listOf(null to "Semua", "adoption" to "Adopsi", "lost" to "Hilang", "found" to "Ditemukan")
+    val selectedType by viewModel.selectedType.observeAsState()
+    val typeOptions = remember(animals) {
+        if (animals.isEmpty()) emptyList() else listOf(null to "Semua Jenis") + animals.map { it.type }.distinct().sorted().map { it to it }
+    }
     val storageRepo = remember { StorageRepository() }
 
     LaunchedEffect(Unit) {
@@ -164,6 +168,22 @@ fun DashboardScreen(
                     FilterChip(
                         selected = selectedFilter == value,
                         onClick = { viewModel.setFilter(value) },
+                        label = { Text(label) }
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                typeOptions.forEach { (value, label) ->
+                    FilterChip(
+                        selected = selectedType == value,
+                        onClick = { viewModel.setTypeFilter(value) },
                         label = { Text(label) }
                     )
                 }

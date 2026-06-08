@@ -25,6 +25,10 @@ class PostViewModel : ViewModel() {
             _postState.value = Result.Error("Gagal memproses foto, coba pilih ulang")
             return
         }
+        if (imageFile != null && imageFile.length() > 5 * 1024 * 1024) {
+            _postState.value = Result.Error("Ukuran file maksimal 5 MB")
+            return
+        }
         _postState.value = Result.Loading
         viewModelScope.launch {
             val userResult = authRepo.getCurrentUser()

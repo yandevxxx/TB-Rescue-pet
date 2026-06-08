@@ -184,7 +184,8 @@ fun SearchScreen(
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(nearbyAnimals, key = { it.animal.id }) { item ->
-                            NearbyAnimalCard(item = item, onClick = { onAnimalClick(item.animal.id) })
+                            val storageRepo = remember { StorageRepository() }
+                    NearbyAnimalCard(item = item, storageRepo = storageRepo, onClick = { onAnimalClick(item.animal.id) })
                         }
                     }
                 }
@@ -194,8 +195,7 @@ fun SearchScreen(
 }
 
 @Composable
-fun NearbyAnimalCard(item: AnimalWithDistance, onClick: () -> Unit = {}) {
-    val storageRepo = remember { StorageRepository() }
+fun NearbyAnimalCard(item: AnimalWithDistance, storageRepo: StorageRepository, onClick: () -> Unit = {}) {
     val animal = item.animal
     val distanceText = if (item.distanceKm < 1.0) {
         "${"%.0f".format(Locale.US, item.distanceKm * 1000)} m"

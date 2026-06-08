@@ -1,9 +1,12 @@
 package com.yarsi.rescuepet.ui.detail
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,6 +100,7 @@ fun DetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val storageRepo = remember { StorageRepository() }
+    val context = LocalContext.current
 
     LaunchedEffect(updateState) {
         when (val state = updateState) {
@@ -167,6 +172,7 @@ fun DetailScreen(
                         isUpdating = isUpdating,
                         isDeleting = isDeleting,
                         storageRepo = storageRepo,
+                        context = context,
                         onUpdateStatus = { newStatus ->
                             viewModel.updateStatus(animal!!.id, newStatus)
                         },
@@ -187,6 +193,7 @@ fun DetailContent(
     isUpdating: Boolean,
     isDeleting: Boolean,
     storageRepo: StorageRepository,
+    context: android.content.Context,
     onUpdateStatus: (String) -> Unit,
     onDelete: () -> Unit
 ) {
@@ -258,7 +265,14 @@ fun DetailContent(
             DetailRow("Kontak", masked)
         }
         if (animal.latitude != 0.0 || animal.longitude != 0.0) {
-            DetailRow("Lokasi", "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}")
+            DetailRow(
+                label = "Lokasi",
+                value = "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}",
+                onClick = {
+                    val uri = Uri.parse("geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}")
+                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                }
+            )
         }
 
         if (isOwner && animal.status == "available") {
@@ -346,8 +360,12 @@ private fun maskContact(contact: String): String {
 }
 
 @Composable
-fun DetailRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+fun DetailRow(label: String, value: String, onClick: (() -> Unit)? = null) {
+    Row(
+        modifier = if (onClick != null) Modifier
+            .fillMaxWidth()
+            .clickable { onClick() } else Modifier.fillMaxWidth()
+    ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
@@ -357,7 +375,8 @@ fun DetailRow(label: String, value: String) {
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
     }
 }

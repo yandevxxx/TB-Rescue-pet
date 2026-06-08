@@ -33,13 +33,19 @@ class HomeViewModel : ViewModel() {
     private val _selectedFilter = MutableLiveData<String?>(null)
     val selectedFilter: LiveData<String?> = _selectedFilter
 
+    private val _selectedType = MutableLiveData<String?>(null)
+    val selectedType: LiveData<String?> = _selectedType
+
+    private var allAnimals: List<Animal> = emptyList()
+
     fun loadAnimals(category: String? = null) {
         currentCategory = category
         _isLoading.value = true
         viewModelScope.launch {
             when (val result = repository.getAnimals(category)) {
                 is Result.Success -> {
-                    _animals.value = result.data
+                    allAnimals = result.data
+                    applyFilters()
                     _error.value = null
                 }
                 is Result.Error -> {
@@ -49,6 +55,24 @@ class HomeViewModel : ViewModel() {
             }
             _isLoading.value = false
         }
+    }
+
+    private fun applyFilters() {
+        val filtered = if (_selectedType.value != null) {
+            allAnimals.filter { it.type == _selectedType.value }
+        } else {
+            allAnimals
+        }
+        _animals.value = filtered
+    }
+
+    fun setTypeFilter(type: String?) {
+        _selectedType.value = type
+        applyFilters()
+    }
+
+    fun getUniqueTypes(): List<String> {
+        return allAnimals.map { it.type }.distinct().sorted()
     }
 
     fun subscribeRealtime() {
