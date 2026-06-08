@@ -95,6 +95,7 @@ class HomeViewModel : ViewModel() {
 
     fun setFilter(category: String?) {
         _selectedFilter.value = category
+        _selectedType.value = null
         loadAnimals(category)
     }
 

@@ -105,6 +105,9 @@ fun PostAnimalScreen(
     var latitude by remember { mutableStateOf("") }
     var longitude by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var contactError by remember { mutableStateOf<String?>(null) }
+    var latitudeError by remember { mutableStateOf<String?>(null) }
+    var longitudeError by remember { mutableStateOf<String?>(null) }
 
     val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
     val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
@@ -228,15 +231,18 @@ fun PostAnimalScreen(
                 value = age,
                 onValueChange = { age = it.filter { c -> c.isDigit() } },
                 label = { Text("Usia (bulan)") },
+                placeholder = { Text("Isi 0 jika tidak tahu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            val descriptionMaxLength = 500
             OutlinedTextField(
                 value = description,
-                onValueChange = { description = it },
+                onValueChange = { if (it.length <= descriptionMaxLength) description = it },
                 label = { Text("Deskripsi") },
+                supportingText = { Text("${description.length}/$descriptionMaxLength") },
                 minLines = 3,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth()
@@ -244,8 +250,10 @@ fun PostAnimalScreen(
 
             OutlinedTextField(
                 value = contact,
-                onValueChange = { contact = it },
+                onValueChange = { contact = it; contactError = null },
                 label = { Text("Kontak (No. HP / Email)") },
+                isError = contactError != null,
+                supportingText = contactError?.let { { Text(it) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -256,16 +264,20 @@ fun PostAnimalScreen(
             ) {
                 OutlinedTextField(
                     value = latitude,
-                    onValueChange = { latitude = it },
+                    onValueChange = { latitude = it; latitudeError = null },
                     label = { Text("Latitude") },
+                    isError = latitudeError != null,
+                    supportingText = latitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
                     value = longitude,
-                    onValueChange = { longitude = it },
+                    onValueChange = { longitude = it; longitudeError = null },
                     label = { Text("Longitude") },
+                    isError = longitudeError != null,
+                    supportingText = longitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f)
@@ -297,6 +309,12 @@ fun PostAnimalScreen(
 
             Button(
                 onClick = {
+                    contactError = validateContact(contact)
+                    latitudeError = validateLatitude(latitude)
+                    longitudeError = validateLongitude(longitude)
+                    if (contactError != null || latitudeError != null || longitudeError != null) {
+                        return@Button
+                    }
                     val animal = Animal(
                         type = selectedType.lowercase(),
                         name = name,
@@ -344,6 +362,30 @@ fun PostAnimalScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+private fun validateContact(contact: String): String? {
+    if (contact.length < 6) return "Kontak minimal 6 karakter"
+    val isPhone = Regex("^[+]?[0-9]{8,15}$").matches(contact)
+    val isEmail = Regex("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$").matches(contact)
+    if (!isPhone && !isEmail) return "Masukkan nomor HP atau email yang valid"
+    return null
+}
+
+private fun validateLatitude(lat: String): String? {
+    if (lat.isBlank()) return null
+    val value = lat.toDoubleOrNull()
+    if (value == null) return "Latitude tidak valid"
+    if (value < -90.0 || value > 90.0) return "Latitude harus antara -90 dan 90"
+    return null
+}
+
+private fun validateLongitude(lon: String): String? {
+    if (lon.isBlank()) return null
+    val value = lon.toDoubleOrNull()
+    if (value == null) return "Longitude tidak valid"
+    if (value < -180.0 || value > 180.0) return "Longitude harus antara -180 dan 180"
+    return null
 }
 
 private fun uriToFile(context: android.content.Context, uri: Uri): File? {
