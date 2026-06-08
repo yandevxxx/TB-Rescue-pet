@@ -53,7 +53,7 @@ class SearchViewModel : ViewModel() {
         userLon: Double,
         radiusKm: Double = 10.0
     ): List<AnimalWithDistance> {
-        val withCoords = animals
+        return animals
             .filter { it.latitude != 0.0 && it.longitude != 0.0 }
             .map { animal ->
                 val distance = calculateDistance(userLat, userLon, animal.latitude, animal.longitude)
@@ -61,12 +61,6 @@ class SearchViewModel : ViewModel() {
             }
             .filter { it.distanceKm <= radiusKm }
             .sortedBy { it.distanceKm }
-
-        val withoutCoords = animals
-            .filter { it.latitude == 0.0 && it.longitude == 0.0 }
-            .map { AnimalWithDistance(it, Double.MAX_VALUE) }
-
-        return withCoords + withoutCoords
     }
 
     private fun calculateDistance(
