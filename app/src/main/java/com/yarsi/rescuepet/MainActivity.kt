@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.yarsi.rescuepet.data.model.Animal
@@ -360,6 +361,22 @@ fun AnimalCard(animal: Animal, storageRepo: StorageRepository, onClick: () -> Un
     }
 }
 
+
+@Preview(showBackground = true)
+@Composable
+private fun StatusChipPreview() {
+    RescuePetTheme {
+        StatusChip(status = "available")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CategoryChipPreview() {
+    RescuePetTheme {
+        CategoryChip(category = "adoption")
+    }
+}
 @Composable
 fun StatusChip(status: String) {
     val label = when (status) {
