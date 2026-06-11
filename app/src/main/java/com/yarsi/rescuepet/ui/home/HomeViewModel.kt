@@ -49,6 +49,10 @@ class HomeViewModel : ViewModel() {
         private const val PAGE_SIZE = 20
     }
 
+    init {
+        loadAnimals()
+    }
+
     fun loadAnimals(category: String? = null) {
         currentCategory = category
         lastDocId = null
@@ -81,7 +85,9 @@ class HomeViewModel : ViewModel() {
             when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, lastDocId)) {
                 is Result.Success -> {
                     val (data, lastId) = result.data
-                    allAnimals = allAnimals + data
+                    // Hindari duplikasi data jika realtime dan pagination bentrok
+                    val newItems = data.filter { newItem -> allAnimals.none { it.id == newItem.id } }
+                    allAnimals = allAnimals + newItems
                     lastDocId = lastId
                     _hasMore.value = lastId != null
                     applyFilters()

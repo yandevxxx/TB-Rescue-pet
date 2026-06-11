@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#99cbff",
+                        "inverse-surface": "#2f3131",
+                        "secondary": "#1b6d24",
+                        "on-secondary-fixed": "#002204",
+                        "on-surface-variant": "#5a413a",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-secondary-container": "#217128",
+                        "on-secondary-fixed-variant": "#005312",
+                        "secondary-container": "#a0f399",
+                        "tertiary-container": "#0b79bf",
+                        "surface-container": "#eeeeee",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-tint": "#b12d00",
+                        "primary-fixed-dim": "#ffb5a0",
+                        "on-tertiary-container": "#fdfcff",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface": "#1a1c1c",
+                        "on-primary-fixed-variant": "#872000",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#ffb5a0",
+                        "background": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "secondary-fixed": "#a3f69c",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#004a78",
+                        "tertiary": "#00609a",
+                        "outline": "#8f7068",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e8e8e8",
+                        "primary": "#ad2c00",
+                        "surface-dim": "#dadada",
+                        "on-background": "#1a1c1c",
+                        "outline-variant": "#e3beb5",
+                        "primary-fixed": "#ffdbd1",
+                        "on-primary-container": "#fffbff",
+                        "primary-container": "#d34011",
+                        "surface-bright": "#f9f9f9",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#001d34",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#3b0900",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#cfe5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "margin-tablet": "24px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .loading-spinner {
+            animation: rotate 2s linear infinite;
+        }
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button aria-label="Kembali" class="p-2 -ml-2 rounded-full hover:bg-surface-container-high active:scale-95 duration-150 transition-all text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-title-lg font-title-lg font-bold text-primary">Posting Hewan PawBuddy</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary" data-icon="pets">pets</span>
+</div>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 mt-16 pb-32 overflow-y-auto px-margin-mobile">
+<form class="py-lg space-y-lg max-w-md mx-auto" id="postPetForm">
+<!-- Photo Selection Section -->
+<div class="flex items-center gap-gutter">
+<div class="w-20 h-20 bg-surface-container-highest rounded-xl flex items-center justify-center overflow-hidden border border-outline-variant relative" id="photoPreview">
+<img alt="Default placeholder" class="w-full h-full object-cover opacity-30" data-alt="A clean, professional close-up of a domestic shorthair cat looking curiously at the camera, set against a soft bokeh background with warm, studio-quality lighting. The visual style is modern and compassionate, using a palette of soft whites and earthy tones to evoke a sense of hope and care for rescue animals. The atmosphere is bright and airy, consistent with a premium mobile application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2rR4VqA2oKMZ4RPd8cvpBpaJaNp_BnKmeyGDNuqZEbLvp7gYBFn1hhwSPz_lUXEaMOctZDpaB9e6oJzz--mCVzOfNbiMIZiw1pRW8Gevvj_imoGaozw0_do--AM-BDrFc02O5AiYG0_r5C-wFOU3jfUeW890x0m2wXw75ODNB6RW6wbkslT-tRBlQYN4on6YMyb43VTh0t7T0bBxMYg5IF74_kI-my589llng7MDYdUkk-kNKBCa6Epjb47BIRn-Kwd24PGqMllQ"/>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="add_a_photo">add_a_photo</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<button class="px-md py-sm border border-primary text-primary rounded-lg font-label-lg hover:bg-primary-fixed duration-150 transition-colors" type="button">
+                        Pilih Foto
+                    </button>
+<p class="text-label-sm text-on-surface-variant">Max 5MB (JPG, PNG)</p>
+</div>
+</div>
+<!-- Basic Info Fields -->
+<div class="grid grid-cols-1 gap-md">
+<!-- Jenis Hewan Dropdown -->
+<div class="relative">
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="animalType">Jenis Hewan</label>
+<select class="w-full h-14 bg-surface rounded-xl border border-outline px-md focus:border-primary focus:ring-1 focus:ring-primary appearance-none transition-all outline-none" id="animalType">
+<option disabled="" selected="" value="">Pilih Jenis</option>
+<option value="Kucing">Kucing</option>
+<option value="Anjing">Anjing</option>
+<option value="Burung">Burung</option>
+<option value="Lainnya">Lainnya</option>
+</select>
+<div class="absolute right-4 top-[42px] pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Kategori Dropdown -->
+<div class="relative">
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="category">Kategori</label>
+<select class="w-full h-14 bg-surface rounded-xl border border-outline px-md focus:border-primary focus:ring-1 focus:ring-primary appearance-none transition-all outline-none" id="category">
+<option disabled="" selected="" value="">Pilih Kategori</option>
+<option value="Adopsi">Adopsi</option>
+<option value="Hilang">Hilang</option>
+<option value="Ditemukan">Ditemukan</option>
+</select>
+<div class="absolute right-4 top-[42px] pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+</div>
+</div>
+<!-- Nama Hewan -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="petName">Nama Hewan</label>
+<input class="w-full h-14 bg-surface rounded-xl border border-outline px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline-variant" id="petName" placeholder="Contoh: Snowball" type="text"/>
+</div>
+<!-- Usia -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="age">Usia (bulan)</label>
+<input class="w-full h-14 bg-surface rounded-xl border border-outline px-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline-variant" id="age" min="0" placeholder="0" type="number"/>
+</div>
+<!-- Deskripsi -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="description">Deskripsi</label>
+<textarea class="w-full bg-surface rounded-xl border border-outline p-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline-variant resize-none" id="description" maxlength="500" placeholder="Ceritakan kondisi atau ciri khas hewan..." rows="4"></textarea>
+<div class="flex justify-end mt-1">
+<span class="text-label-sm text-outline" id="charCount">0 / 500</span>
+</div>
+</div>
+<!-- Kontak -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="contact">Kontak</label>
+<div class="relative">
+<input class="w-full h-14 bg-surface rounded-xl border border-outline pl-12 pr-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline-variant" id="contact" placeholder="08123456789" type="tel"/>
+<div class="absolute left-4 top-4 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+</div>
+</div>
+<p class="hidden text-error text-label-sm mt-1" id="contactError">Gunakan format nomor telepon yang valid.</p>
+</div>
+</div>
+<!-- Location Section -->
+<div class="pt-sm space-y-md">
+<div class="flex items-center justify-between">
+<h3 class="text-label-lg font-bold text-on-surface">Lokasi Kejadian</h3>
+<button class="flex items-center gap-2 text-primary border border-primary px-3 py-1.5 rounded-full text-label-sm hover:bg-primary-fixed-dim transition-all active:scale-95" id="getLocationBtn" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="my_location" id="locationIcon">my_location</span>
+<span class="hidden loading-spinner material-symbols-outlined text-[18px]" data-icon="progress_activity" id="spinner">progress_activity</span>
+                        Gunakan Lokasi Saya
+                    </button>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Latitude</label>
+<input class="w-full h-12 bg-surface-container-low rounded-lg border border-outline-variant px-md text-label-lg outline-none cursor-default" id="lat" placeholder="-6.2088" readonly="" type="text"/>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">Longitude</label>
+<input class="w-full h-12 bg-surface-container-low rounded-lg border border-outline-variant px-md text-label-lg outline-none cursor-default" id="lng" placeholder="106.8456" readonly="" type="text"/>
+</div>
+</div>
+</div>
+</form>
+</main>
+<!-- Fixed Action Button at Bottom -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-container p-margin-mobile border-t border-outline-variant/10 z-40">
+<button class="w-full h-14 bg-primary text-on-primary rounded-full font-title-md shadow-lg flex items-center justify-center gap-2 disabled:opacity-30 disabled:grayscale transition-all active:scale-95 duration-200" disabled="" id="submitBtn">
+            Simpan Posting PawBuddy
+            <span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('postPetForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const description = document.getElementById('description');
+            const charCount = document.getElementById('charCount');
+            const getLocationBtn = document.getElementById('getLocationBtn');
+            const spinner = document.getElementById('spinner');
+            const locationIcon = document.getElementById('locationIcon');
+            const latInput = document.getElementById('lat');
+            const lngInput = document.getElementById('lng');
+            const contactInput = document.getElementById('contact');
+            const contactError = document.getElementById('contactError');
+
+            // Character counter for description
+            description.addEventListener('input', (e) => {
+                const length = e.target.value.length;
+                charCount.textContent = `${length} / 500`;
+                validateForm();
+            });
+
+            // Basic validation for enabling Submit Button
+            const validateForm = () => {
+                const inputs = form.querySelectorAll('input:not([readonly]), select, textarea');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        isValid = false;
+                    }
+                });
+
+                // Simple phone regex
+                const phoneRegex = /^[0-9+]{8,15}$/;
+                if (!phoneRegex.test(contactInput.value)) {
+                    isValid = false;
+                    if(contactInput.value.length > 5) contactError.classList.remove('hidden');
+                } else {
+                    contactError.classList.add('hidden');
+                }
+
+                submitBtn.disabled = !isValid;
+            };
+
+            form.addEventListener('input', validateForm);
+
+            // Mock Geolocation functionality
+            getLocationBtn.addEventListener('click', () => {
+                locationIcon.classList.add('hidden');
+                spinner.classList.remove('hidden');
+                getLocationBtn.classList.add('opacity-50', 'pointer-events-none');
+
+                // Simulate network delay
+                setTimeout(() => {
+                    latInput.value = "-6.1754";
+                    lngInput.value = "106.8272";
+                    
+                    locationIcon.classList.remove('hidden');
+                    spinner.classList.add('hidden');
+                    getLocationBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    validateForm();
+                }, 1500);
+            });
+
+            // Success feedback on submit
+            submitBtn.addEventListener('click', () => {
+                submitBtn.innerHTML = `Mengirim... <span class="material-symbols-outlined loading-spinner" data-icon="progress_activity">progress_activity</span>`;
+                submitBtn.disabled = true;
+                
+                setTimeout(() => {
+                    alert('Posting berhasil disimpan ke PawBuddy!');
+                    submitBtn.innerHTML = `Simpan Posting PawBuddy <span class="material-symbols-outlined" data-icon="send">send</span>`;
+                    submitBtn.disabled = false;
+                }, 2000);
+            });
+        });
+    </script>
+</body></html>

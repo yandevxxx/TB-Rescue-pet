@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PawBuddy - Hewan Terdekat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#99cbff",
+                        "inverse-surface": "#2f3131",
+                        "secondary": "#1b6d24",
+                        "on-secondary-fixed": "#002204",
+                        "on-surface-variant": "#5a413a",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-secondary-container": "#217128",
+                        "on-secondary-fixed-variant": "#005312",
+                        "secondary-container": "#a0f399",
+                        "tertiary-container": "#0b79bf",
+                        "surface-container": "#eeeeee",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-tint": "#b12d00",
+                        "primary-fixed-dim": "#ffb5a0",
+                        "on-tertiary-container": "#fdfcff",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface": "#1a1c1c",
+                        "on-primary-fixed-variant": "#872000",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#ffb5a0",
+                        "background": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "secondary-fixed": "#a3f69c",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#004a78",
+                        "tertiary": "#00609a",
+                        "outline": "#8f7068",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e8e8e8",
+                        "primary": "#ad2c00",
+                        "surface-dim": "#dadada",
+                        "on-background": "#1a1c1c",
+                        "outline-variant": "#e3beb5",
+                        "primary-fixed": "#ffdbd1",
+                        "on-primary-container": "#fffbff",
+                        "primary-container": "#d34011",
+                        "surface-bright": "#f9f9f9",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#001d34",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#3b0900",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#cfe5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "margin-tablet": "24px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                        "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        @keyframes spinner {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-custom {
+            animation: spinner 1s linear infinite;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .state-hidden { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface shadow-sm">
+<div class="flex items-center gap-4">
+<button class="p-2 -ml-2 hover:bg-surface-container-high rounded-full transition-colors duration-150 active:scale-95" onclick="window.history.back()">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-title-lg font-title-lg font-bold text-primary">Hewan Terdekat</h1>
+</div>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors duration-150 active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+</header>
+<main class="pt-20 pb-24 min-h-screen px-margin-mobile">
+<!-- Loading State -->
+<section class="flex flex-col items-center justify-center py-20 animate-pulse" id="loading-state">
+<div class="w-12 h-12 border-4 border-outline-variant border-t-primary rounded-full animate-spin-custom mb-4"></div>
+<p class="text-body-md font-body-md text-on-surface-variant">Mencari hewan di sekitar...</p>
+</section>
+<!-- Success Content: List of Nearby Animals -->
+<section class="state-hidden space-y-4" id="content-state">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">Hasil Terdekat</span>
+<span class="text-label-sm font-label-sm text-primary">Radius 10 km</span>
+</div>
+<!-- Card 1 -->
+<div class="flex items-center p-md bg-surface-container-low rounded-xl shadow-sm hover:bg-surface-container transition-all active:scale-[0.98] cursor-pointer gap-4">
+<div class="w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a friendly Beagle dog with floppy brown ears and warm, expressive eyes, sitting calmly in a sun-drenched suburban park. The background is a soft, out-of-focus green garden, typical of a warm afternoon in a compassionate pet-friendly community. The lighting is natural and high-key, aligning with the modern, bright PawBuddy brand aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr_9jimdjPckZH6pCYDIBHaWIoucfvYTnzTzNT2-U_Hsk8Q39gEPKbYRfqNimUcEQIz7iBNp_KM-PnCSvxlkQR4kk3OFaprDkTjlVvQFh41FE-PvVeBQ4EyBcri61IFIOgUZRszW32-K5bhS5e8rkhuwVkjpTvRiGy1kGFg9Sx6R9s-jVd9fjVvKoEVYPgcAae2rF9ByYKyWjGFuZSZnubxy0SipneHY30Icq3HNA-Yofe7F6TaXlZNpIVDUSWDmSx5QnuuhDpq30"/>
+</div>
+<div class="flex-grow flex flex-col">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-title-md font-bold text-on-surface">Buddy</h2>
+<span class="px-3 py-1 bg-primary text-on-primary text-label-sm font-label-sm rounded-full">1.5 km</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant">Anjing • Beagle</p>
+<div class="flex gap-2 mt-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+<span class="text-label-sm font-label-sm text-secondary">Vaksin Lengkap</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex items-center p-md bg-surface-container-low rounded-xl shadow-sm hover:bg-surface-container transition-all active:scale-[0.98] cursor-pointer gap-4">
+<div class="w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A sleek black and white tuxedo cat with bright green eyes looking curiously at the camera. The cat is resting on a clean, modern white sofa in a contemporary living room setting. The atmosphere is serene and domestic, captured with high-contrast, professional lighting that emphasizes the pet's healthy coat and the brand's reliable, modern efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjm5yW8288_yNoA9LJl-kkAzgDgzstHwL0n7Noz-wwA2bidnyuOJ05B929pJtIsvBK6fytZD7sqRlqViLK8UbSCQfgaYCeB-cdw6bORacdm6MQsm4Zm7Jgbr52CCMZ7P_iq5FVzg9TCkVao_9daVifeW7LcnlGKezOteqsc3b7b2xlC3jRbTzgrf3dpouFq--BOCdZX-rrfKxmQwdLGfjryHpApL-odEZzAHqjzAddlUyXkZ8Oi4I10KYsBmSLIGQjrF_cb9WPfGc"/>
+</div>
+<div class="flex-grow flex flex-col">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-title-md font-bold text-on-surface">Mimi</h2>
+<span class="px-3 py-1 bg-primary text-on-primary text-label-sm font-label-sm rounded-full">2.8 km</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant">Kucing • Lokal</p>
+<div class="flex gap-2 mt-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Baru Ditambahkan</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex items-center p-md bg-surface-container-low rounded-xl shadow-sm hover:bg-surface-container transition-all active:scale-[0.98] cursor-pointer gap-4">
+<div class="w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A small, fluffy golden retriever puppy playing with a blue toy on a manicured lawn. The puppy's joy is palpable, set against the backdrop of a bright, modern residential street. The scene is illuminated by soft, midday sun, creating a warm and compassionate mood that highlights the bridge between animals in need and loving families." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaVVCaBk479UvJ8QHsXMg2n4tC5N1nDrDL_PYTu5T9gNl9stUuwXeaAGiGaB4YJv8YV0zIa8jNNu-3AG5UfAit3enX6uWZVL9YHwxMMJT8vjm_8dTnaKG3YqGXlNR55KcbhFPESjnUUMnqWROQXjLIcoJdDoLVG0aDC5L7fwLtbA4mGRgPPiPMOKNflrx9708cM2FMmxq-0kVDRiw0iHCdt_Z7ctEpdFqMw4mt2Ju23BqyJOl6wMwiU5x2Kod5cLD7c7mJ_wJU5Jk"/>
+</div>
+<div class="flex-grow flex flex-col">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-title-md font-bold text-on-surface">Luna</h2>
+<span class="px-3 py-1 bg-primary text-on-primary text-label-sm font-label-sm rounded-full">4.2 km</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant">Anjing • Golden Retriever</p>
+<div class="flex gap-2 mt-2 text-error">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+<span class="text-label-sm font-label-sm">Sangat Mendesak</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State -->
+<section class="state-hidden flex flex-col items-center justify-center py-20 text-center px-10" id="empty-state">
+<div class="w-24 h-24 bg-surface-variant rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-outline text-[48px]">location_off</span>
+</div>
+<h3 class="text-title-lg font-title-lg text-on-surface font-bold mb-2">Tidak ada hewan di sekitar (radius 10 km)</h3>
+<p class="text-body-md font-body-md text-on-surface-variant mb-8">Coba perlebar jarak pencarian Anda atau cek kembali beberapa saat lagi.</p>
+<button class="bg-primary text-on-primary px-lg py-3 rounded-full font-title-md transition-transform active:scale-95 shadow-md">Perlebar Radius</button>
+</section>
+<!-- Error State: Permission Denied -->
+<section class="state-hidden flex flex-col items-center justify-center py-20 text-center px-10" id="error-state">
+<div class="w-24 h-24 bg-error-container rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-error text-[48px]">fmd_bad</span>
+</div>
+<h3 class="text-title-lg font-title-lg text-error font-bold mb-2">Izin Lokasi Ditolak</h3>
+<p class="text-body-md font-body-md text-on-surface-variant mb-8">Kami membutuhkan akses lokasi untuk menampilkan hewan penyelamatan terdekat dari posisi Anda.</p>
+<button class="bg-primary text-on-primary px-lg py-3 rounded-full font-title-md transition-transform active:scale-95 shadow-md">Aktifkan di Pengaturan</button>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Contextual) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pt-3 pb-safe px-2 bg-surface-container rounded-t-xl shadow-lg">
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="text-label-sm font-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pets</span>
+<span class="text-label-sm font-label-sm">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-label-sm font-label-sm">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        /** 
+         * Logic to cycle through states for demonstration purposes.
+         * In a real app, this would be tied to API responses and permissions.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const loading = document.getElementById('loading-state');
+            const content = document.getElementById('content-state');
+            const empty = document.getElementById('empty-state');
+            const error = document.getElementById('error-state');
+
+            const showState = (state) => {
+                [loading, content, empty, error].forEach(el => el.classList.add('state-hidden'));
+                state.classList.remove('state-hidden');
+            };
+
+            // Sequence demonstration: Loading -> Content
+            // You can manually trigger showState(empty) or showState(error) in console.
+            setTimeout(() => {
+                showState(content);
+            }, 2000);
+        });
+
+        // Utility to simulate interaction
+        const cards = document.querySelectorAll('#content-state > div');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                console.log('Navigating to pet details...');
+            });
+        });
+    </script>
+</body></html>

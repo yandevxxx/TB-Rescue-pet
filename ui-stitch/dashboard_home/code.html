@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PawBuddy Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#99cbff",
+                        "inverse-surface": "#2f3131",
+                        "secondary": "#1b6d24",
+                        "on-secondary-fixed": "#002204",
+                        "on-surface-variant": "#5a413a",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-secondary-container": "#217128",
+                        "on-secondary-fixed-variant": "#005312",
+                        "secondary-container": "#a0f399",
+                        "tertiary-container": "#0b79bf",
+                        "surface-container": "#eeeeee",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-tint": "#b12d00",
+                        "primary-fixed-dim": "#ffb5a0",
+                        "on-tertiary-container": "#fdfcff",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface": "#1a1c1c",
+                        "on-primary-fixed-variant": "#872000",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#ffb5a0",
+                        "background": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "secondary-fixed": "#a3f69c",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#004a78",
+                        "tertiary": "#00609a",
+                        "outline": "#8f7068",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e8e8e8",
+                        "primary": "#ad2c00",
+                        "surface-dim": "#dadada",
+                        "on-background": "#1a1c1c",
+                        "outline-variant": "#e3beb5",
+                        "primary-fixed": "#ffdbd1",
+                        "on-primary-container": "#fffbff",
+                        "primary-container": "#d34011",
+                        "surface-bright": "#f9f9f9",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#001d34",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#3b0900",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#cfe5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "margin-tablet": "24px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "title-lg": ["22px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400"}],
+                        "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-primary-container shadow-sm">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 active:scale-95 duration-150 ease-in-out transition-transform">
+<span class="material-symbols-outlined text-on-primary-container">search</span>
+</button>
+<h1 class="text-title-lg font-title-lg font-bold text-on-primary-container">PawBuddy</h1>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 active:scale-95 duration-150 ease-in-out transition-transform">
+<span class="material-symbols-outlined text-on-primary-container">logout</span>
+</button>
+</header>
+<main class="pt-16 pb-24">
+<!-- Filter Chips Section -->
+<div class="sticky top-16 z-40 bg-surface/95 backdrop-blur-md pb-sm">
+<!-- Row 1: Main Categories -->
+<div class="flex gap-2 px-margin-mobile py-3 overflow-x-auto hide-scrollbar">
+<button class="shrink-0 px-4 py-2 rounded-full bg-secondary-container text-on-secondary-container text-label-lg font-label-lg shadow-sm border border-secondary/10">Semua</button>
+<button class="shrink-0 px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-label-lg font-label-lg hover:bg-surface-variant transition-colors border border-outline-variant/30">Adopsi</button>
+<button class="shrink-0 px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-label-lg font-label-lg hover:bg-surface-variant transition-colors border border-outline-variant/30">Hilang</button>
+<button class="shrink-0 px-4 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-label-lg font-label-lg hover:bg-surface-variant transition-colors border border-outline-variant/30">Ditemukan</button>
+</div>
+<!-- Row 2: Pet Types -->
+<div class="flex gap-2 px-margin-mobile py-1 overflow-x-auto hide-scrollbar">
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">pets</span> Kucing
+            </button>
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">pets</span> Anjing
+            </button>
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">flutter_dash</span> Burung
+            </button>
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">cabin</span> Kelinci
+            </button>
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span> Lainnya
+            </button>
+</div>
+</div>
+<!-- Vertical List of Animal Cards -->
+<section class="px-margin-mobile flex flex-col gap-4 mt-2">
+<!-- Card 1 -->
+<div class="flex p-3 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest active:scale-[0.98] transition-transform duration-200">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-surface-container">
+<img alt="Cat profile" class="w-full h-full object-cover" data-alt="A close-up high-quality portrait of a beautiful ginger cat with bright green eyes sitting comfortably in a sunlit modern apartment. The lighting is warm and golden, highlighting the soft texture of the cat's fur. The background is a blurred minimalist interior with light wood and cream tones, evoking a cozy and compassionate rescue environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBogbRcbOXn_R9v344rmwzqCqejpkFnoMHGssx4C7Iw4wjGPjllIqkUCf0-m_qBe2fqJw8ge-tf1AiA_XeagPB0UqfEKTmv321Vjr8ZWCNAsfX4xbDIIcQrhduJf84Vf1EmAQ3i9HQuAUoUZBhIcNH8sX56kw95jrNiidBA0qtsw5wjk-oCcXNera49_FS0DBGe4pbxzhUpGx7DDOs4OhweqrzTuzJEvRBAig2gjHX0znAVpkMKnRkFvysPuOL7hi4tkon4FL6H8FY"/>
+</div>
+<div class="ml-4 flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-bold text-on-surface leading-tight">Luna</h2>
+<span class="material-symbols-outlined text-outline-variant text-sm">favorite</span>
+</div>
+<p class="text-label-sm text-on-surface-variant font-label-sm">Persian Mix • Betina</p>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider">Tersedia</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold uppercase tracking-wider">Adopsi</span>
+</div>
+<div class="mt-2 flex items-center gap-1 text-[11px] text-outline italic">
+<span class="material-symbols-outlined text-[14px]">call</span>
+                    0812-****-4567
+                </div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex p-3 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest active:scale-[0.98] transition-transform duration-200">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-surface-container">
+<img alt="Dog profile" class="w-full h-full object-cover" data-alt="A medium-sized beagle dog with floppy ears and a playful expression, looking directly into the camera with big brown eyes. The dog is outdoors in a lush green park during late afternoon, with soft, diffused sunlight creating a peaceful and reliable atmosphere. The photo captures a sense of hope and modern pet rescue branding with a vibrant, natural color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVkdh3XuiRSieXSYknhKWBJyiWuKfxEeWhcPnPBXor82R5iPaQ3KV1giMvBzd6HE6yCUTcekoRfBrTCx6E3FaFNIZhtEQ1Du0RcZxYAqiEqdy3vdThDTzva3ttvFHXibHoZWlwFVhL0VUDphhZFduq7EjvrVmINsY3ydUaxZoW5aXVqqn0EUCgGqb8pv_LVETfDVxQe7Jqqxz2lrinvHUm1KGmReM4D4kXsff7_36RTD81vDEufsQmGyTvZnfYhQvSoleNWGNGCbU"/>
+</div>
+<div class="ml-4 flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-bold text-on-surface leading-tight">Rocky</h2>
+<span class="material-symbols-outlined text-outline-variant text-sm">favorite</span>
+</div>
+<p class="text-label-sm text-on-surface-variant font-label-sm">Beagle • Jantan</p>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider">Tersedia</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold uppercase tracking-wider">Adopsi</span>
+</div>
+<div class="mt-2 flex items-center gap-1 text-[11px] text-outline italic">
+<span class="material-symbols-outlined text-[14px]">call</span>
+                    0857-****-1122
+                </div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex p-3 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container-highest active:scale-[0.98] transition-transform duration-200">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-surface-container">
+<img alt="Bird profile" class="w-full h-full object-cover" data-alt="A vibrant green and yellow parrot perched gracefully on a natural branch. The background is a soft-focus garden with hints of exotic flowers, creating a sense of urgency for rescue but a comforting aesthetic. The lighting is bright and clear, reflecting a modern and clean design approach for a pet adoption application. High contrast and rich saturation emphasize the animal's beauty." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7-vXNOY4lHV4gbEuTi-4fQ8vTGhy26YtqMM3i0EXPJi6IdUMm-Qk8nO56s94eEBxf_72n1Upa7kE3-C_jkOfjzOoGnMZgCQFi4Y-Xu0UE6PshNTOq4fCWK7rHwvN4qg80H46aOeyuXofce9S-MQMWA7R8FVEP3kIQi-2ZDdatW0lewiRajy1aRwuNeLDkmF_fYKasJ99UMbgTy-PQrEbNIcGbw0ZxZvCUGoEc6njLdCvCOKpiOwFMNrpiCH7hJTbimEp30-PBykA"/>
+</div>
+<div class="ml-4 flex flex-col flex-1">
+<div class="flex justify-between items-start">
+<h2 class="text-title-md font-bold text-on-surface leading-tight">Kiki</h2>
+<span class="material-symbols-outlined text-outline-variant text-sm">favorite</span>
+</div>
+<p class="text-label-sm text-on-surface-variant font-label-sm">Lovebird • Betina</p>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider">Tersedia</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold uppercase tracking-wider">Adopsi</span>
+</div>
+<div class="mt-2 flex items-center gap-1 text-[11px] text-outline italic">
+<span class="material-symbols-outlined text-[14px]">call</span>
+                    0821-****-9988
+                </div>
+</div>
+</div>
+<!-- Empty State / Footer loading simulator -->
+<div class="py-8 flex flex-col items-center justify-center gap-4" id="loading-indicator">
+<div class="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+<p class="text-label-lg text-outline animate-pulse">Memuat lebih banyak...</p>
+</div>
+<!-- Hidden Empty State (Logic for demonstration) -->
+<div class="hidden py-16 flex flex-col items-center justify-center text-center px-8" id="empty-state">
+<div class="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-outline text-4xl">search_off</span>
+</div>
+<h3 class="text-title-md font-bold text-on-surface">Belum ada hewan yang diposting</h3>
+<p class="text-body-md text-on-surface-variant mt-2">Coba ganti filter atau kembali lagi nanti untuk melihat update terbaru.</p>
+</div>
+</section>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-24 right-margin-mobile w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-lg flex items-center justify-center active:scale-90 transition-transform duration-200 z-50">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest flex justify-around items-center pt-3 pb-safe px-2 rounded-t-xl shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 active:scale-90 duration-200 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-label-sm font-label-sm mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-variant transition-colors rounded-xl">
+<span class="material-symbols-outlined">pets</span>
+<span class="text-label-sm font-label-sm mt-1">Explore</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-variant transition-colors rounded-xl">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-label-sm font-label-sm mt-1">Alerts</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-variant transition-colors rounded-xl">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-sm font-label-sm mt-1">Profile</span>
+</button>
+</nav>
+<script>
+    // Micro-interactions for list scrolling and pull-to-refresh feel
+    let isRefreshing = false;
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const emptyState = document.getElementById('empty-state');
+
+    // Simple mock for "infinite scroll" disappearance
+    window.addEventListener('scroll', () => {
+        const scrollPosition = window.innerHeight + window.pageYOffset;
+        const bodyHeight = document.body.offsetHeight;
+        
+        if (scrollPosition >= bodyHeight - 100 && !isRefreshing) {
+            // Keep it visible for visual effect
+        }
+    });
+
+    // Demo interaction for filter chips
+    document.querySelectorAll('.shrink-0').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const parent = this.parentElement;
+            parent.querySelectorAll('.shrink-0').forEach(c => {
+                c.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+                c.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+            });
+            this.classList.add('bg-secondary-container', 'text-on-secondary-container');
+            this.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        });
+    });
+</script>
+</body></html>
