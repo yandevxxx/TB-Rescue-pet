@@ -46,24 +46,6 @@ class AnimalRepository {
         }
     }
 
-    suspend fun getAnimals(category: String? = null): Result<List<Animal>> {
-        return try {
-            val queries = mutableListOf<String>()
-            if (category != null) queries.add(Query.equal("category", category))
-            queries.add(Query.orderDesc("\$createdAt"))
-            queries.add(Query.limit(500))
-
-            val docs = db.listDocuments(
-                databaseId = Constants.DATABASE_ID,
-                collectionId = Constants.COLLECTION_ANIMALS,
-                queries = queries
-            )
-            Result.Success(docs.documents.map { it.toAnimal() })
-        } catch (e: Exception) {
-            Result.Error(ErrorMapper.map(e, "Gagal load data"))
-        }
-    }
-
     suspend fun getAnimalsPaged(
         category: String? = null,
         limit: Int = 20,
@@ -72,7 +54,7 @@ class AnimalRepository {
         return try {
             val queries = mutableListOf<String>()
             if (category != null) queries.add(Query.equal("category", category))
-            queries.add(Query.orderDesc("\$createdAt"))
+            queries.add(Query.orderDesc($$"$createdAt"))
             queries.add(Query.limit(limit))
             if (cursorAfter != null) queries.add(Query.cursorAfter(cursorAfter))
 
@@ -106,7 +88,7 @@ class AnimalRepository {
             queries.add(Query.greaterThan("longitude", userLon - lonDelta))
             queries.add(Query.lessThan("longitude", userLon + lonDelta))
 
-            queries.add(Query.orderDesc("\$createdAt"))
+            queries.add(Query.orderDesc($$"$createdAt"))
             queries.add(Query.limit(100))
 
             val docs = db.listDocuments(

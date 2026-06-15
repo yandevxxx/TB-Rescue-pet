@@ -62,7 +62,6 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
-import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import java.util.Locale
 

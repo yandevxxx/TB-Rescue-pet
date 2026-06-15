@@ -482,16 +482,14 @@ private fun validateContact(contact: String): String? {
 
 private fun validateLatitude(lat: String): String? {
     if (lat.isBlank()) return null
-    val value = lat.toDoubleOrNull()
-    if (value == null) return "Latitude tidak valid"
+    val value = lat.toDoubleOrNull() ?: return "Latitude tidak valid"
     if (value < -90.0 || value > 90.0) return "Latitude harus antara -90 dan 90"
     return null
 }
 
 private fun validateLongitude(lon: String): String? {
     if (lon.isBlank()) return null
-    val value = lon.toDoubleOrNull()
-    if (value == null) return "Longitude tidak valid"
+    val value = lon.toDoubleOrNull() ?: return "Longitude tidak valid"
     if (value < -180.0 || value > 180.0) return "Longitude harus antara -180 dan 180"
     return null
 }

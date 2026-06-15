@@ -1,7 +1,7 @@
 package com.yarsi.rescuepet.ui.detail
 
+import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,6 +62,7 @@ import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 class AnimalDetailActivity : ComponentActivity() {
     private val viewModel: DetailViewModel by viewModels()
@@ -187,6 +187,7 @@ fun DetailScreen(
     }
 }
 
+@SuppressLint("UseKtx")
 @Composable
 fun DetailContent(
     animal: Animal,
@@ -269,14 +270,11 @@ fun DetailContent(
             DetailRow("Kontak", masked)
         }
         if (animal.latitude != 0.0 || animal.longitude != 0.0) {
-            DetailRow(
-                label = "Lokasi",
-                value = "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}",
-                onClick = {
-                    val uri = Uri.parse("geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}")
-                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                }
-            )
+            DetailRow(label = "Lokasi", value = "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}", onClick = {
+                    val uri =
+                        "geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}".toUri()
+                context.run { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+            })
         }
 
         if (isOwner && animal.status == "available") {
@@ -330,13 +328,12 @@ fun DetailContent(
 
     if (showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { },
             title = { Text("Hapus Postingan") },
             text = { Text("Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.") },
             confirmButton = {
                 Button(
                     onClick = {
-                        showDeleteDialog = false
                         onDelete()
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -347,7 +344,7 @@ fun DetailContent(
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) {
+                OutlinedButton(onClick = { }) {
                     Text("Batal")
                 }
             }

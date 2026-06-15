@@ -108,10 +108,6 @@ class HomeViewModel : ViewModel() {
         applyFilters()
     }
 
-    fun getUniqueTypes(): List<String> {
-        return allAnimals.map { it.type }.distinct().sorted()
-    }
-
     fun subscribeRealtime() {
         unsubscribeRealtime()
         val realtime = AppwriteClient.getInstance().getRealtime()

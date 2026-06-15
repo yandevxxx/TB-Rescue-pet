@@ -8,6 +8,10 @@ import kotlinx.coroutines.launch
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.AnimalRepository
 import com.yarsi.rescuepet.utils.Result
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class SearchViewModel : ViewModel() {
     private val repository = AnimalRepository()
@@ -22,7 +26,6 @@ class SearchViewModel : ViewModel() {
     val error: LiveData<String?> = _error
 
     private val _userLocation = MutableLiveData<Pair<Double, Double>?>()
-    val userLocation: LiveData<Pair<Double, Double>?> = _userLocation
 
     fun onLocationError(message: String) {
         _error.value = message
@@ -75,14 +78,14 @@ class SearchViewModel : ViewModel() {
         lat1: Double, lon1: Double,
         lat2: Double, lon2: Double
     ): Double {
-        val R = 6371.0
+        val ra = 6371.0
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return R * c
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return ra * c
     }
 }
 
