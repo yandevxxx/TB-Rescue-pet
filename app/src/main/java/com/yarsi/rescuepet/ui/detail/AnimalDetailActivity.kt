@@ -245,8 +245,8 @@ fun DetailContent(
                 text = when (animal.status) {
                     "available" -> "Tersedia"
                     "adopted" -> "Teradopsi"
-                    "found" -> "Sudah Ditemukan"
-                    "reunited" -> "Sudah Ditemukan"
+                    "found" -> "Ditemukan"
+                    "reunited" -> "Sudah Reunifikasi"
                     else -> animal.status
                 },
                 style = MaterialTheme.typography.labelMedium,
@@ -299,11 +299,20 @@ fun DetailContent(
                 }
                 if (animal.category == "lost") {
                     OutlinedButton(
-                        onClick = { onUpdateStatus("reunited") },
+                        onClick = { onUpdateStatus("found") },
                         modifier = Modifier.weight(1f),
                         enabled = !isUpdating
                     ) {
                         Text("Tandai Ditemukan")
+                    }
+                }
+                if (animal.category == "found") {
+                    OutlinedButton(
+                        onClick = { onUpdateStatus("found") },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isUpdating
+                    ) {
+                        Text("Tandai Bertemu Pemilik")
                     }
                 }
             }
@@ -328,7 +337,7 @@ fun DetailContent(
 
     if (showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = { showDeleteDialog = false },
             title = { Text("Hapus Postingan") },
             text = { Text("Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.") },
             confirmButton = {
@@ -344,7 +353,7 @@ fun DetailContent(
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { }) {
+                OutlinedButton(onClick = { showDeleteDialog = false }) {
                     Text("Batal")
                 }
             }

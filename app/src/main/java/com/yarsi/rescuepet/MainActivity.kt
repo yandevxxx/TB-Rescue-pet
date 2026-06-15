@@ -366,8 +366,8 @@ fun StatusChip(status: String) {
     val label = when (status) {
         "available" -> "Tersedia"
         "adopted" -> "Teradopsi"
-        "found" -> "Sudah Ditemukan"
-        "reunited" -> "Sudah Ditemukan"
+        "found" -> "Ditemukan"
+        "reunited" -> "Sudah Reunifikasi"
         else -> status
     }
     Text(
