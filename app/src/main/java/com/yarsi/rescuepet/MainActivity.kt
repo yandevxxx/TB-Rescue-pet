@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.StorageRepository
@@ -399,4 +400,62 @@ private fun maskContact(contact: String): String {
     val last = if (contact.length >= 8) contact.takeLast(4) else ""
     val mid = contact.length - 4 - last.length
     return first + "*".repeat(mid.coerceAtLeast(0)) + last
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun DashboardScreenPreview() {
+    RescuePetTheme {
+        val mockAnimals = listOf(
+            Animal(id = "1", name = "Milo", type = "Kucing", age = 6, description = "Kucing jantan lucu", status = "available", category = "adoption", posterName = "Budi", posterContact = "081234567890"),
+            Animal(id = "2", name = "Bruno", type = "Anjing", age = 24, status = "available", category = "adoption", posterName = "Siti"),
+            Animal(id = "3", name = "Coco", type = "Kucing", age = 3, status = "available", category = "lost", posterName = "Aulia"),
+            Animal(id = "4", name = "Max", type = "Anjing", age = 12, status = "available", category = "found", posterName = "Doni")
+        )
+        val filterOptions = listOf("Semua", "Adopsi", "Hilang", "Ditemukan")
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("RescuePet") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { padding ->
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    filterOptions.forEach { label ->
+                        FilterChip(selected = label == "Semua", onClick = { }, label = { Text(label) })
+                    }
+                }
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    items(mockAnimals, key = { it.id }) { animal ->
+                        Card(onClick = { }, modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                            Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(80.dp).background(Color.LightGray, RoundedCornerShape(8.dp)).clip(RoundedCornerShape(8.dp)))
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(animal.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Text(animal.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Tersedia", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                        Text("Adopsi", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

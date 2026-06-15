@@ -51,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -360,6 +361,59 @@ private fun maskContact(contact: String): String {
     val last = if (contact.length >= 8) contact.takeLast(4) else ""
     val mid = contact.length - 4 - last.length
     return first + "*".repeat(mid.coerceAtLeast(0)) + last
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun DetailScreenPreview() {
+    RescuePetTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Detail Hewan") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { padding ->
+            Column(
+                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    Modifier.fillMaxWidth().height(250.dp)
+                        .background(Color.LightGray, RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                )
+                Text("Milo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Adopsi", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text("Tersedia", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                }
+                DetailLabel("Jenis", "Kucing")
+                DetailLabel("Usia", "6 bulan")
+                DetailLabel("Diposting", "Budi")
+                Text("Kucing jantan lucu, sudah divaksin", style = MaterialTheme.typography.bodyMedium)
+                DetailLabel("Kontak", "081234567890")
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailLabel(label: String, value: String) {
+    Row(Modifier.fillMaxWidth()) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(80.dp))
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+    }
 }
 
 @Composable

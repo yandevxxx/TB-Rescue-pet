@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.google.android.gms.location.LocationServices
@@ -61,6 +62,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
+import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import java.util.Locale
 
@@ -280,5 +282,68 @@ private fun getUserLocation(
         }
     }.addOnFailureListener {
         viewModel.onLocationFailure()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun SearchScreenPreview() {
+    data class NearbyMock(val name: String, val type: String, val distanceKm: Double)
+    val mockResults = listOf(
+        NearbyMock("Milo", "Kucing", 0.5),
+        NearbyMock("Bruno", "Anjing", 1.2),
+        NearbyMock("Coco", "Kucing", 2.8),
+        NearbyMock("Max", "Anjing", 5.3),
+    )
+    RescuePetTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Hewan Terdekat") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { padding ->
+            LazyColumn(
+                Modifier.fillMaxSize().padding(padding),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(mockResults, key = { it.name }) { item ->
+                    Card(
+                        onClick = { },
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                Modifier.size(80.dp)
+                                    .background(Color.LightGray, RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(8.dp))
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(item.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val dist = if (item.distanceKm < 1.0) "${"%.0f".format(item.distanceKm * 1000)} m" else "${"%.1f".format(item.distanceKm)} km"
+                                Text(dist, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

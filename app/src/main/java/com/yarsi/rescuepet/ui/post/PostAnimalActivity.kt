@@ -58,6 +58,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -407,6 +408,66 @@ fun PostAnimalScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PostAnimalScreenPreview() {
+    RescuePetTheme {
+        var selectedType by remember { mutableStateOf("") }
+        var typeExpanded by remember { mutableStateOf(false) }
+        var selectedCategory by remember { mutableStateOf("") }
+        var categoryExpanded by remember { mutableStateOf(false) }
+        var name by remember { mutableStateOf("") }
+        var age by remember { mutableStateOf("") }
+        var description by remember { mutableStateOf("") }
+        var contact by remember { mutableStateOf("") }
+        var latitude by remember { mutableStateOf("") }
+        var longitude by remember { mutableStateOf("") }
+        val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
+        val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Posting Hewan") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { p ->
+            Column(Modifier.fillMaxSize().padding(p).padding(horizontal = 16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Spacer(Modifier.height(8.dp))
+                ExposedDropdownMenuBox(typeExpanded, { typeExpanded = it }) {
+                    OutlinedTextField(selectedType, {}, readOnly = true, label = { Text("Jenis Hewan") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                    ExposedDropdownMenu(typeExpanded, { typeExpanded = false }) { typeOptions.forEach { t -> DropdownMenuItem(text = { Text(t) }, onClick = { selectedType = t; typeExpanded = false }) } }
+                }
+                ExposedDropdownMenuBox(categoryExpanded, { categoryExpanded = it }) {
+                    OutlinedTextField(selectedCategory, {}, readOnly = true, label = { Text("Kategori") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(categoryExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                    ExposedDropdownMenu(categoryExpanded, { categoryExpanded = false }) { categoryOptions.forEach { c -> DropdownMenuItem(text = { Text(c) }, onClick = { selectedCategory = c; categoryExpanded = false }) } }
+                }
+                OutlinedTextField(name, { name = it }, label = { Text("Nama Hewan") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(age, { age = it.filter { c -> c.isDigit() } }, label = { Text("Usia (bulan)") }, placeholder = { Text("Isi 0 jika tidak tahu") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(description, { if (it.length <= 500) description = it }, label = { Text("Deskripsi") }, supportingText = { Text("${description.length}/500") }, minLines = 3, maxLines = 5, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(contact, { contact = it }, label = { Text("Kontak (No. HP / Email)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(latitude, { latitude = it }, label = { Text("Latitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(longitude, { longitude = it }, label = { Text("Longitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
+                }
+                OutlinedButton(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Gunakan Lokasi Saya") }
+                OutlinedButton(onClick = { }) { Text("Pilih Foto") }
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { }, modifier = Modifier.fillMaxWidth().height(50.dp), enabled = false) { Text("Simpan") }
+            }
         }
     }
 }

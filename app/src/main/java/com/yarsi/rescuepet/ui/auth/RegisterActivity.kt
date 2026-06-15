@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yarsi.rescuepet.MainActivity
 import com.yarsi.rescuepet.data.repository.AuthRepository
@@ -189,6 +190,52 @@ fun RegisterScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.clickable { onNavigateToLogin() }
             )
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun RegisterScreenPreview() {
+    RescuePetTheme {
+        var name by remember { mutableStateOf("") }
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        Scaffold { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("Daftar Akun Baru", style = MaterialTheme.typography.headlineMedium)
+                Spacer(Modifier.height(32.dp))
+                OutlinedTextField(
+                    name, { name = it },
+                    label = { Text("Nama") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    email, { email = it },
+                    label = { Text("Email") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    password, { password = it },
+                    label = { Text("Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true, modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(24.dp))
+                Button(
+                    onClick = { },
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) { Text("Daftar") }
+            }
         }
     }
 }
