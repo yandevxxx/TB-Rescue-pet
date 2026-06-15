@@ -53,7 +53,8 @@ class HomeViewModel : ViewModel() {
         currentCategory = category
         lastDocId = null
         allAnimals = emptyList()
-        _hasMore.value = true
+        _animals.value = emptyList()
+        _hasMore.value = false
         _isLoading.value = true
         viewModelScope.launch {
             when (val result = repository.getAnimalsPaged(category, PAGE_SIZE, null)) {

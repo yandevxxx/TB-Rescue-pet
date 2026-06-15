@@ -4,7 +4,6 @@ package com.yarsi.rescuepet.data.repository
 import io.appwrite.Permission
 import io.appwrite.Query
 import io.appwrite.Role
-import io.appwrite.exceptions.AppwriteException
 import io.appwrite.models.Document
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.remote.AppwriteClient
@@ -60,7 +59,7 @@ class AnimalRepository {
                 queries = queries
             )
             Result.Success(docs.documents.map { it.toAnimal() })
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
@@ -85,7 +84,7 @@ class AnimalRepository {
             val animals = docs.documents.map { it.toAnimal() }
             val lastId = if (docs.documents.size >= limit) docs.documents.last().id else null
             Result.Success(Pair(animals, lastId))
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
@@ -116,7 +115,7 @@ class AnimalRepository {
                 queries = queries
             )
             Result.Success(docs.documents.map { it.toAnimal() })
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
@@ -129,7 +128,7 @@ class AnimalRepository {
                 documentId = id
             )
             Result.Success(doc.toAnimal())
-        } catch (e: AppwriteException) {
+        } catch (e: Exception) {
             Result.Error(ErrorMapper.map(e, "Gagal load data"))
         }
     }
