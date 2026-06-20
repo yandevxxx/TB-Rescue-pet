@@ -167,7 +167,7 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RescuePet") },
+                title = { Text("PawBuddy") },
                 actions = {
                     IconButton(onClick = onSearchNearby) {
                         Icon(Icons.Default.Search, contentDescription = "Cari Terdekat")
@@ -177,8 +177,8 @@ fun DashboardScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
@@ -417,10 +417,10 @@ private fun DashboardScreenPreview() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("RescuePet") },
+                    title = { Text("PawBuddy") },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             }
