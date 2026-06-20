@@ -43,10 +43,19 @@ class HomeViewModel : ViewModel() {
     private val _selectedType = MutableLiveData<String?>(null)
     val selectedType: LiveData<String?> = _selectedType
 
+    private val _currentRole = MutableLiveData<String?>(null)
+    val currentRole: LiveData<String?> = _currentRole
+
     private var allAnimals: List<Animal> = emptyList()
 
     companion object {
         private const val PAGE_SIZE = 20
+    }
+
+    fun loadRole() {
+        viewModelScope.launch {
+            _currentRole.value = AuthRepository().getRole()
+        }
     }
 
     fun loadAnimals(category: String? = null) {

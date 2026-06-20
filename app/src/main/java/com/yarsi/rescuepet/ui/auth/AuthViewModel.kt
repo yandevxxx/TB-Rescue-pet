@@ -17,7 +17,7 @@ class AuthViewModel : ViewModel() {
     private val _registerState = MutableLiveData<Result<String>>()
     val registerState: LiveData<Result<String>> = _registerState
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, role: String) {
         val validationError = validateEmail(email) ?: validatePassword(password)
         if (validationError != null) {
             _loginState.value = Result.Error(validationError)
@@ -25,7 +25,7 @@ class AuthViewModel : ViewModel() {
         }
         _loginState.value = Result.Loading
         viewModelScope.launch {
-            _loginState.value = repository.login(email, password)
+            _loginState.value = repository.login(email, password, role)
         }
     }
 

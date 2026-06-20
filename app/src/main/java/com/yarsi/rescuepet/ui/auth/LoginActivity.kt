@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,7 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -74,6 +80,7 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
@@ -83,6 +90,9 @@ fun LoginScreen(
     var isCheckingSession by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("Donor") }
+    var roleExpanded by remember { mutableStateOf(false) }
+    val roleOptions = listOf("Donor", "Pencari")
     val loginState by viewModel.loginState.observeAsState()
     val isLoading by remember { derivedStateOf { loginState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -183,10 +193,43 @@ fun LoginScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = roleExpanded,
+                onExpandedChange = { roleExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = role,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Saya sebagai") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleExpanded) },
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    expanded = roleExpanded,
+                    onDismissRequest = { roleExpanded = false }
+                ) {
+                    roleOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                role = option
+                                roleExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.login(email, password) },
+                onClick = { viewModel.login(email, password, role) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
