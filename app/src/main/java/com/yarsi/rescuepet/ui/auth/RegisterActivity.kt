@@ -117,15 +117,16 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Daftar Akun Baru",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = name,
@@ -186,7 +187,7 @@ fun RegisterScreen(
             Text(
                 text = "Sudah punya akun? Masuk",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.clickable { onNavigateToLogin() }
             )
         }
@@ -205,12 +206,12 @@ private fun RegisterScreenPreview() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("Daftar Akun Baru", style = MaterialTheme.typography.headlineMedium)
-                Spacer(Modifier.height(32.dp))
+                Text("Daftar Akun Baru", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(24.dp))
                 OutlinedTextField(
                     name, { name = it },
                     label = { Text("Nama") }, singleLine = true,
