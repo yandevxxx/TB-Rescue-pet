@@ -137,6 +137,7 @@ fun DashboardScreen(
     val hasMore by viewModel.hasMore.observeAsState(false)
     val error by viewModel.error.observeAsState()
     val selectedFilter by viewModel.selectedFilter.observeAsState()
+    val currentRole by viewModel.currentRole.observeAsState()
 
     val filterOptions = listOf(null to "Semua", "adoption" to "Adopsi", "lost" to "Hilang", "found" to "Ditemukan")
     val selectedType by viewModel.selectedType.observeAsState()
@@ -159,6 +160,7 @@ fun DashboardScreen(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.loadRole()
         if (animals.isEmpty() && !isLoading) {
             viewModel.loadAnimals()
         }
@@ -183,8 +185,10 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddAnimal) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Hewan")
+            if (currentRole == "Donor") {
+                FloatingActionButton(onClick = onAddAnimal) {
+                    Icon(Icons.Default.Add, contentDescription = "Tambah Hewan")
+                }
             }
         }
     ) { padding ->

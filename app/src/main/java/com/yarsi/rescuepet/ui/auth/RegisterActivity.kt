@@ -41,7 +41,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.yarsi.rescuepet.MainActivity
 import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
@@ -58,7 +57,7 @@ class RegisterActivity : ComponentActivity() {
                     RegisterScreen(
                         viewModel = viewModel,
                         onRegisterSuccess = {
-                            startActivity(Intent(this, MainActivity::class.java))
+                            startActivity(Intent(this, LoginActivity::class.java))
                             finish()
                         },
                         onNavigateToLogin = {
