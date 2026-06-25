@@ -29,6 +29,9 @@ class DetailViewModel : ViewModel() {
     private val _currentUserId = MutableLiveData<String?>()
     val currentUserId: LiveData<String?> = _currentUserId
 
+    private val _currentRole = MutableLiveData<String?>()
+    val currentRole: LiveData<String?> = _currentRole
+
     private val _deleteState = MutableLiveData<Result<Unit>>()
     val deleteState: LiveData<Result<Unit>> = _deleteState
 
@@ -42,6 +45,7 @@ class DetailViewModel : ViewModel() {
             if (userResult is Result.Success) {
                 _currentUserId.value = userResult.data.id
             }
+            _currentRole.value = authRepo.getRole()
             when (val result = animalRepo.getAnimalById(id)) {
                 is Result.Success -> {
                     _animal.value = result.data

@@ -96,6 +96,7 @@ fun DetailScreen(
     val updateState by viewModel.updateState.observeAsState()
     val deleteState by viewModel.deleteState.observeAsState()
     val currentUserId by viewModel.currentUserId.observeAsState()
+    val currentRole by viewModel.currentRole.observeAsState()
     val isUpdating by remember { derivedStateOf { updateState is Result.Loading } }
     val isDeleting by remember { derivedStateOf { deleteState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -170,6 +171,7 @@ fun DetailScreen(
                     DetailContent(
                         animal = animal!!,
                         currentUserId = currentUserId,
+                        currentRole = currentRole,
                         isUpdating = isUpdating,
                         isDeleting = isDeleting,
                         storageRepo = storageRepo,
@@ -192,6 +194,7 @@ fun DetailScreen(
 fun DetailContent(
     animal: Animal,
     currentUserId: String?,
+    currentRole: String?,
     isUpdating: Boolean,
     isDeleting: Boolean,
     storageRepo: StorageRepository,
@@ -275,6 +278,31 @@ fun DetailContent(
                         "geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}".toUri()
                 context.run { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
             })
+        }
+
+        if (!isOwner && currentRole == "Pencari" && animal.status == "available" && animal.posterContact.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    val contact = animal.posterContact
+                    val isPhone = Regex("^[+]?[0-9]{8,15}$").matches(contact)
+                    val isEmail = Regex("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$").matches(contact)
+                    if (isPhone) {
+                        val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+                            data = "tel:${contact}".toUri()
+                        }
+                        context.startActivity(dialIntent)
+                    } else if (isEmail) {
+                        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = "mailto:${contact}".toUri()
+                        }
+                        context.startActivity(emailIntent)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) {
+                Text("Hubungi Pemosting")
+            }
         }
 
         if (isOwner && animal.status == "available") {
