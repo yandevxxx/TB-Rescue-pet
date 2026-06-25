@@ -54,7 +54,7 @@ class AnimalRepository {
         return try {
             val queries = mutableListOf<String>()
             if (category != null) queries.add(Query.equal("category", category))
-            queries.add(Query.orderDesc($$"$createdAt"))
+            queries.add(Query.orderDesc("\$createdAt"))
             queries.add(Query.limit(limit))
             if (cursorAfter != null) queries.add(Query.cursorAfter(cursorAfter))
 
@@ -88,7 +88,7 @@ class AnimalRepository {
             queries.add(Query.greaterThan("longitude", userLon - lonDelta))
             queries.add(Query.lessThan("longitude", userLon + lonDelta))
 
-            queries.add(Query.orderDesc($$"$createdAt"))
+            queries.add(Query.orderDesc("\$createdAt"))
             queries.add(Query.limit(100))
 
             val docs = db.listDocuments(

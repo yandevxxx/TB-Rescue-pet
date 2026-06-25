@@ -336,7 +336,7 @@ fun DetailContent(
                 }
                 if (animal.category == "found") {
                     OutlinedButton(
-                        onClick = { onUpdateStatus("found") },
+                        onClick = { onUpdateStatus("reunited") },
                         modifier = Modifier.weight(1f),
                         enabled = !isUpdating
                     ) {

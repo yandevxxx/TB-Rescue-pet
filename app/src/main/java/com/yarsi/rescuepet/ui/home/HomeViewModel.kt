@@ -21,6 +21,7 @@ class HomeViewModel : ViewModel() {
     private var currentCategory: String? = null
     private var debounceJob: Job? = null
     private var lastDocId: String? = null
+    private var loadGeneration = 0L
 
     private val _animals = MutableLiveData<List<Animal>>()
     val animals: LiveData<List<Animal>> = _animals
@@ -59,6 +60,8 @@ class HomeViewModel : ViewModel() {
     }
 
     fun loadAnimals(category: String? = null) {
+        loadGeneration++
+        val gen = loadGeneration
         currentCategory = category
         lastDocId = null
         allAnimals = emptyList()
@@ -68,6 +71,7 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             when (val result = repository.getAnimalsPaged(category, PAGE_SIZE, null)) {
                 is Result.Success -> {
+                    if (gen != loadGeneration) return@launch
                     val (data, lastId) = result.data
                     allAnimals = data
                     lastDocId = lastId
@@ -76,6 +80,7 @@ class HomeViewModel : ViewModel() {
                     _error.value = null
                 }
                 is Result.Error -> {
+                    if (gen != loadGeneration) return@launch
                     _error.value = result.message
                 }
                 else -> {}
@@ -86,17 +91,22 @@ class HomeViewModel : ViewModel() {
 
     fun loadMore() {
         if (_isLoadingMore.value == true || _hasMore.value != true) return
+        val gen = loadGeneration
         _isLoadingMore.value = true
         viewModelScope.launch {
             when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, lastDocId)) {
                 is Result.Success -> {
+                    if (gen != loadGeneration) return@launch
                     val (data, lastId) = result.data
                     allAnimals = allAnimals + data
                     lastDocId = lastId
                     _hasMore.value = lastId != null
                     applyFilters()
                 }
-                is Result.Error -> {}
+                is Result.Error -> {
+                    if (gen != loadGeneration) return@launch
+                    _error.value = result.message
+                }
                 else -> {}
             }
             _isLoadingMore.value = false
