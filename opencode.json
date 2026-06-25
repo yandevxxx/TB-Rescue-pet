@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "android-mcp": {
+      "type": "local",
+      "command": ["uvx", "android-mcp"],
+      "environment": {
+        "PATH": "C:\\Users\\Zildjian XTO\\AppData\\Local\\Android\\Sdk\\platform-tools"
+      }
+    }
+  }
+}

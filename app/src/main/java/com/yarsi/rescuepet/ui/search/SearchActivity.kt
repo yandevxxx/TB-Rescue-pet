@@ -57,12 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
-import com.yarsi.rescuepet.data.repository.StorageRepository
+
 import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
+import com.yarsi.rescuepet.utils.getCurrentLocation
 import java.util.Locale
 
 class SearchActivity : ComponentActivity() {
@@ -108,7 +106,11 @@ fun SearchScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            getUserLocation(context, viewModel)
+            getCurrentLocation(context, { lat, lon ->
+                viewModel.searchNearby(lat, lon)
+            }, {
+                viewModel.onLocationFailure()
+            })
         } else {
             viewModel.onLocationError("Izin lokasi diperlukan untuk pencarian terdekat")
         }
@@ -118,7 +120,11 @@ fun SearchScreen(
         if (!locationRequested) {
             locationRequested = true
             if (locationPermissionGranted) {
-                getUserLocation(context, viewModel)
+                getCurrentLocation(context, { lat, lon ->
+                    viewModel.searchNearby(lat, lon)
+                }, {
+                    viewModel.onLocationFailure()
+                })
             } else {
                 permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
@@ -179,14 +185,15 @@ fun SearchScreen(
                     )
                 }
                 else -> {
-                    val storageRepo = remember { StorageRepository() }
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(nearbyAnimals, key = { it.animal.id }) { item ->
-                            NearbyAnimalCard(item = item, storageRepo = storageRepo, onClick = { onAnimalClick(item.animal.id) })
+                            val imageUrl = if (item.animal.imageId.isNotEmpty())
+                                viewModel.getImageUrl(item.animal.imageId) else null
+                            NearbyAnimalCard(item = item, imageUrl = imageUrl, onClick = { onAnimalClick(item.animal.id) })
                         }
                     }
                 }
@@ -196,7 +203,7 @@ fun SearchScreen(
 }
 
 @Composable
-fun NearbyAnimalCard(item: AnimalWithDistance, storageRepo: StorageRepository, onClick: () -> Unit = {}) {
+fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () -> Unit = {}) {
     val animal = item.animal
     val distanceText = if (item.distanceKm < 1.0) {
         "${"%.0f".format(Locale.US, item.distanceKm * 1000)} m"
@@ -216,11 +223,7 @@ fun NearbyAnimalCard(item: AnimalWithDistance, storageRepo: StorageRepository, o
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = if (animal.imageId.isNotEmpty()) {
-                    storageRepo.getImageUrl(animal.imageId)
-                } else {
-                    null
-                },
+                model = imageUrl,
                 contentDescription = animal.name,
                 modifier = Modifier
                     .size(80.dp)
@@ -249,38 +252,6 @@ fun NearbyAnimalCard(item: AnimalWithDistance, storageRepo: StorageRepository, o
                 )
             }
         }
-    }
-}
-
-private fun getUserLocation(
-    context: android.content.Context,
-    viewModel: SearchViewModel
-) {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    if (ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) return
-
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        if (location != null) {
-            viewModel.searchNearby(location.latitude, location.longitude)
-        } else {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
-            ).addOnSuccessListener { currentLocation ->
-                if (currentLocation != null) {
-                    viewModel.searchNearby(currentLocation.latitude, currentLocation.longitude)
-                } else {
-                    viewModel.onLocationUnavailable()
-                }
-            }.addOnFailureListener {
-                viewModel.onLocationFailure()
-            }
-        }
-    }.addOnFailureListener {
-        viewModel.onLocationFailure()
     }
 }
 
@@ -336,7 +307,7 @@ private fun SearchScreenPreview() {
                             Column(Modifier.weight(1f)) {
                                 Text(item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(item.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                val dist = if (item.distanceKm < 1.0) "${"%.0f".format(item.distanceKm * 1000)} m" else "${"%.1f".format(item.distanceKm)} km"
+                                val dist = if (item.distanceKm < 1.0) "${"%.0f".format(Locale.US, item.distanceKm * 1000)} m" else "${"%.1f".format(Locale.US, item.distanceKm)} km"
                                 Text(dist, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                             }
                         }

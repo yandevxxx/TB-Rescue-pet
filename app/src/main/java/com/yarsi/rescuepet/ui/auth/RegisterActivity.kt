@@ -41,7 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.yarsi.rescuepet.data.repository.AuthRepository
+
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
 import kotlinx.coroutines.launch
@@ -76,22 +76,25 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
-    var isCheckingSession by remember { mutableStateOf(true) }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val registerState by viewModel.registerState.observeAsState()
+    val sessionState by viewModel.sessionState.observeAsState()
     val isLoading by remember { derivedStateOf { registerState is Result.Loading } }
+    val isCheckingSession by remember { derivedStateOf { sessionState == null || sessionState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        val session = AuthRepository().getCurrentUser()
-        if (session is Result.Success) {
-            onRegisterSuccess()
-            return@LaunchedEffect
+        viewModel.checkSession()
+    }
+
+    LaunchedEffect(sessionState) {
+        when (val state = sessionState) {
+            is Result.Success -> onRegisterSuccess()
+            else -> {}
         }
-        isCheckingSession = false
     }
 
     LaunchedEffect(registerState) {

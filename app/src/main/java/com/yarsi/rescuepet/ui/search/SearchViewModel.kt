@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.AnimalRepository
+import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.utils.Result
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -15,6 +16,7 @@ import kotlin.math.sqrt
 
 class SearchViewModel : ViewModel() {
     private val repository = AnimalRepository()
+    private val storageRepo = StorageRepository()
 
     private val _nearbyAnimals = MutableLiveData<List<AnimalWithDistance>>()
     val nearbyAnimals: LiveData<List<AnimalWithDistance>> = _nearbyAnimals
@@ -73,6 +75,8 @@ class SearchViewModel : ViewModel() {
             .filter { it.distanceKm <= radiusKm }
             .sortedBy { it.distanceKm }
     }
+
+    fun getImageUrl(imageId: String): String = storageRepo.getImageUrl(imageId)
 
     private fun calculateDistance(
         lat1: Double, lon1: Double,

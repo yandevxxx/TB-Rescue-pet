@@ -12,11 +12,13 @@ import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.data.repository.AnimalRepository
 import com.yarsi.rescuepet.data.repository.AuthRepository
+import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.utils.Constants
 import com.yarsi.rescuepet.utils.Result
 
 class HomeViewModel : ViewModel() {
     private val repository = AnimalRepository()
+    private val storageRepo = StorageRepository()
     private var realtimeSubscription: RealtimeSubscription? = null
     private var currentCategory: String? = null
     private var debounceJob: Job? = null
@@ -150,6 +152,8 @@ class HomeViewModel : ViewModel() {
         _selectedType.value = null
         loadAnimals(category)
     }
+
+    fun getImageUrl(imageId: String): String = storageRepo.getImageUrl(imageId)
 
     fun logout(onDone: () -> Unit) {
         viewModelScope.launch {

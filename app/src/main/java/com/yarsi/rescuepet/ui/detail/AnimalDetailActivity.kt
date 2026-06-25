@@ -56,11 +56,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import coil.compose.AsyncImage
 import com.yarsi.rescuepet.data.model.Animal
-import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
+import com.yarsi.rescuepet.utils.maskContact
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 
@@ -101,7 +102,6 @@ fun DetailScreen(
     val isDeleting by remember { derivedStateOf { deleteState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val storageRepo = remember { StorageRepository() }
     val context = LocalContext.current
 
     LaunchedEffect(updateState) {
@@ -174,7 +174,7 @@ fun DetailScreen(
                         currentRole = currentRole,
                         isUpdating = isUpdating,
                         isDeleting = isDeleting,
-                        storageRepo = storageRepo,
+                        imageUrl = if (animal!!.imageId.isNotEmpty()) viewModel.getImageUrl(animal!!.imageId) else null,
                         context = context,
                         onUpdateStatus = { newStatus ->
                             viewModel.updateStatus(animal!!.id, newStatus)
@@ -197,7 +197,7 @@ fun DetailContent(
     currentRole: String?,
     isUpdating: Boolean,
     isDeleting: Boolean,
-    storageRepo: StorageRepository,
+    imageUrl: String?,
     context: android.content.Context,
     onUpdateStatus: (String) -> Unit,
     onDelete: () -> Unit
@@ -213,11 +213,7 @@ fun DetailContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         AsyncImage(
-            model = if (animal.imageId.isNotEmpty()) {
-                storageRepo.getImageUrl(animal.imageId)
-            } else {
-                null
-            },
+            model = imageUrl,
             contentDescription = animal.name,
             modifier = Modifier
                 .fillMaxWidth()
@@ -273,7 +269,7 @@ fun DetailContent(
             DetailRow("Kontak", masked)
         }
         if (animal.latitude != 0.0 || animal.longitude != 0.0) {
-            DetailRow(label = "Lokasi", value = "${"%.4f".format(animal.latitude)}, ${"%.4f".format(animal.longitude)}", onClick = {
+            DetailRow(label = "Lokasi", value = "${"%.4f".format(Locale.US, animal.latitude)}, ${"%.4f".format(Locale.US, animal.longitude)}", onClick = {
                     val uri =
                         "geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}".toUri()
                 context.run { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
@@ -387,14 +383,6 @@ fun DetailContent(
             }
         )
     }
-}
-
-private fun maskContact(contact: String): String {
-    if (contact.length <= 4) return contact
-    val first = contact.take(4)
-    val last = if (contact.length >= 8) contact.takeLast(4) else ""
-    val mid = contact.length - 4 - last.length
-    return first + "*".repeat(mid.coerceAtLeast(0)) + last
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

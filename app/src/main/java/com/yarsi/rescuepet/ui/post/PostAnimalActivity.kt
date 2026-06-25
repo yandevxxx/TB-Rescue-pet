@@ -9,10 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,9 +30,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -49,7 +45,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -58,17 +53,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import coil.compose.rememberAsyncImagePainter
-import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
+import com.yarsi.rescuepet.utils.getCurrentLocation
+import com.yarsi.rescuepet.utils.uriToFile
 import kotlinx.coroutines.launch
-import java.io.File
 
 class PostAnimalActivity : ComponentActivity() {
     private val viewModel: PostViewModel by viewModels()
@@ -95,27 +91,17 @@ fun PostAnimalScreen(
     onSuccess: () -> Unit
 ) {
     val context = LocalContext.current
-    val postState by viewModel.postState.observeAsState()
-    val isLoading by remember { derivedStateOf { postState is Result.Loading } }
+    val formState by viewModel.formState.observeAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    var selectedType by remember { mutableStateOf("") }
-    var typeExpanded by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf("") }
-    var categoryExpanded by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var contact by remember { mutableStateOf("") }
-    var latitude by remember { mutableStateOf("") }
-    var longitude by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var contactError by remember { mutableStateOf<String?>(null) }
-    var latitudeError by remember { mutableStateOf<String?>(null) }
-    var longitudeError by remember { mutableStateOf<String?>(null) }
-    var isGettingLocation by remember { mutableStateOf(false) }
+    var typeExpanded by remember { mutableStateOf(false) }
+    var categoryExpanded by remember { mutableStateOf(false) }
+
+    val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
+    val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
 
     val locationPermissionGranted = ContextCompat.checkSelfPermission(
         context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -124,15 +110,15 @@ fun PostAnimalScreen(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) getCurrentLocation(context, { lat, lon ->
-            latitude = "%.6f".format(lat)
-            longitude = "%.6f".format(lon)
-            isGettingLocation = false
-        }, { isGettingLocation = false })
+        if (granted) {
+            viewModel.setGettingLocation(true)
+            getCurrentLocation(context, { lat, lon ->
+                viewModel.onLocationResult(lat, lon)
+            }, {
+                viewModel.setGettingLocation(false)
+            })
+        }
     }
-
-    val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
-    val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -140,15 +126,17 @@ fun PostAnimalScreen(
         imageUri = uri
     }
 
-    LaunchedEffect(postState) {
-        when (val state = postState) {
+    val state = formState ?: PostFormState()
+
+    LaunchedEffect(state.submitResult) {
+        when (val result = state.submitResult) {
             is Result.Success -> {
                 scope.launch { snackbarHostState.showSnackbar("Berhasil diposting") }
                 kotlinx.coroutines.delay(1200)
                 onSuccess()
             }
             is Result.Error -> {
-                scope.launch { snackbarHostState.showSnackbar(state.message) }
+                scope.launch { snackbarHostState.showSnackbar(result.message) }
             }
             else -> {}
         }
@@ -186,7 +174,7 @@ fun PostAnimalScreen(
                 onExpandedChange = { typeExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = selectedType,
+                    value = state.type,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Jenis Hewan") },
@@ -203,7 +191,7 @@ fun PostAnimalScreen(
                         DropdownMenuItem(
                             text = { Text(type) },
                             onClick = {
-                                selectedType = type
+                                viewModel.onTypeChanged(type)
                                 typeExpanded = false
                             }
                         )
@@ -216,7 +204,7 @@ fun PostAnimalScreen(
                 onExpandedChange = { categoryExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = selectedCategory,
+                    value = state.category,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Kategori") },
@@ -233,7 +221,7 @@ fun PostAnimalScreen(
                         DropdownMenuItem(
                             text = { Text(cat) },
                             onClick = {
-                                selectedCategory = cat
+                                viewModel.onCategoryChanged(cat)
                                 categoryExpanded = false
                             }
                         )
@@ -242,16 +230,16 @@ fun PostAnimalScreen(
             }
 
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
+                value = state.name,
+                onValueChange = { viewModel.onNameChanged(it) },
                 label = { Text("Nama Hewan") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = age,
-                onValueChange = { age = it.filter { c -> c.isDigit() } },
+                value = state.age,
+                onValueChange = { viewModel.onAgeChanged(it) },
                 label = { Text("Usia (bulan)") },
                 placeholder = { Text("Isi 0 jika tidak tahu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -259,23 +247,22 @@ fun PostAnimalScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            val descriptionMaxLength = 500
             OutlinedTextField(
-                value = description,
-                onValueChange = { if (it.length <= descriptionMaxLength) description = it },
+                value = state.description,
+                onValueChange = { viewModel.onDescriptionChanged(it) },
                 label = { Text("Deskripsi") },
-                supportingText = { Text("${description.length}/$descriptionMaxLength") },
+                supportingText = { Text("${state.description.length}/500") },
                 minLines = 3,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = contact,
-                onValueChange = { contact = it; contactError = null },
+                value = state.contact,
+                onValueChange = { viewModel.onContactChanged(it) },
                 label = { Text("Kontak (No. HP / Email)") },
-                isError = contactError != null,
-                supportingText = contactError?.let { { Text(it) } },
+                isError = state.contactError != null,
+                supportingText = state.contactError?.let { { Text(it) } },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -285,21 +272,21 @@ fun PostAnimalScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
-                    value = latitude,
-                    onValueChange = { latitude = it; latitudeError = null },
+                    value = state.latitude,
+                    onValueChange = { viewModel.onLatitudeChanged(it) },
                     label = { Text("Latitude") },
-                    isError = latitudeError != null,
-                    supportingText = latitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
+                    isError = state.latitudeError != null,
+                    supportingText = state.latitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
-                    value = longitude,
-                    onValueChange = { longitude = it; longitudeError = null },
+                    value = state.longitude,
+                    onValueChange = { viewModel.onLongitudeChanged(it) },
                     label = { Text("Longitude") },
-                    isError = longitudeError != null,
-                    supportingText = longitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
+                    isError = state.longitudeError != null,
+                    supportingText = state.longitudeError?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f)
@@ -308,21 +295,21 @@ fun PostAnimalScreen(
 
             OutlinedButton(
                 onClick = {
-                    isGettingLocation = true
+                    viewModel.setGettingLocation(true)
                     if (locationPermissionGranted) {
                         getCurrentLocation(context, { lat, lon ->
-                            latitude = "%.6f".format(lat)
-                            longitude = "%.6f".format(lon)
-                            isGettingLocation = false
-                        }, { isGettingLocation = false })
+                            viewModel.onLocationResult(lat, lon)
+                        }, {
+                            viewModel.setGettingLocation(false)
+                        })
                     } else {
                         locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isGettingLocation
+                enabled = !state.isGettingLocation
             ) {
-                if (isGettingLocation) {
+                if (state.isGettingLocation) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
                         strokeWidth = 2.dp
@@ -357,46 +344,16 @@ fun PostAnimalScreen(
 
             Button(
                 onClick = {
-                    contactError = validateContact(contact)
-                    latitudeError = validateLatitude(latitude)
-                    longitudeError = validateLongitude(longitude)
-                    if (contactError != null || latitudeError != null || longitudeError != null) {
-                        return@Button
-                    }
-                    val animal = Animal(
-                        type = selectedType.lowercase(),
-                        name = name,
-                        age = age.toIntOrNull() ?: 0,
-                        description = description,
-                        status = "available",
-                        latitude = latitude.toDoubleOrNull() ?: 0.0,
-                        longitude = longitude.toDoubleOrNull() ?: 0.0,
-                        posterContact = contact,
-                        category = when (selectedCategory) {
-                            "Hilang" -> "lost"
-                            "Ditemukan" -> "found"
-                            else -> "adoption"
-                        }
-                    )
                     val uri = imageUri
-                    val (imageFile, pickFailed) = if (uri != null) {
-                        val file = uriToFile(context, uri)
-                        file to (file == null)
-                    } else {
-                        null to false
-                    }
-                    viewModel.postAnimal(animal, imageFile, pickFailed)
+                    val imageFile = if (uri != null) uriToFile(context, uri) else null
+                    viewModel.submit(imageFile)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = !isLoading && name.isNotBlank()
-                        && selectedType.isNotBlank()
-                        && selectedCategory.isNotBlank()
-                        && age.isNotBlank()
-                        && contact.isNotBlank()
+                enabled = !state.isSubmitting && state.isFormValid
             ) {
-                if (isLoading) {
+                if (state.isSubmitting) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -417,18 +374,11 @@ fun PostAnimalScreen(
 @Composable
 private fun PostAnimalScreenPreview() {
     RescuePetTheme {
-        var selectedType by remember { mutableStateOf("") }
         var typeExpanded by remember { mutableStateOf(false) }
-        var selectedCategory by remember { mutableStateOf("") }
         var categoryExpanded by remember { mutableStateOf(false) }
-        var name by remember { mutableStateOf("") }
-        var age by remember { mutableStateOf("") }
-        var description by remember { mutableStateOf("") }
-        var contact by remember { mutableStateOf("") }
-        var latitude by remember { mutableStateOf("") }
-        var longitude by remember { mutableStateOf("") }
         val typeOptions = listOf("Kucing", "Anjing", "Kelinci", "Hamster", "Burung", "Lainnya")
         val categoryOptions = listOf("Adopsi", "Hilang", "Ditemukan")
+        val state = PostFormState()
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -448,20 +398,20 @@ private fun PostAnimalScreenPreview() {
             Column(Modifier.fillMaxSize().padding(p).padding(horizontal = 16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Spacer(Modifier.height(8.dp))
                 ExposedDropdownMenuBox(typeExpanded, { typeExpanded = it }) {
-                    OutlinedTextField(selectedType, {}, readOnly = true, label = { Text("Jenis Hewan") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
-                    ExposedDropdownMenu(typeExpanded, { typeExpanded = false }) { typeOptions.forEach { t -> DropdownMenuItem(text = { Text(t) }, onClick = { selectedType = t; typeExpanded = false }) } }
+                    OutlinedTextField(state.type, {}, readOnly = true, label = { Text("Jenis Hewan") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                    ExposedDropdownMenu(typeExpanded, { typeExpanded = false }) { typeOptions.forEach { t -> DropdownMenuItem(text = { Text(t) }, onClick = { typeExpanded = false }) } }
                 }
                 ExposedDropdownMenuBox(categoryExpanded, { categoryExpanded = it }) {
-                    OutlinedTextField(selectedCategory, {}, readOnly = true, label = { Text("Kategori") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(categoryExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
-                    ExposedDropdownMenu(categoryExpanded, { categoryExpanded = false }) { categoryOptions.forEach { c -> DropdownMenuItem(text = { Text(c) }, onClick = { selectedCategory = c; categoryExpanded = false }) } }
+                    OutlinedTextField(state.category, {}, readOnly = true, label = { Text("Kategori") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(categoryExpanded) }, modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                    ExposedDropdownMenu(categoryExpanded, { categoryExpanded = false }) { categoryOptions.forEach { c -> DropdownMenuItem(text = { Text(c) }, onClick = { categoryExpanded = false }) } }
                 }
-                OutlinedTextField(name, { name = it }, label = { Text("Nama Hewan") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(age, { age = it.filter { c -> c.isDigit() } }, label = { Text("Usia (bulan)") }, placeholder = { Text("Isi 0 jika tidak tahu") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(description, { if (it.length <= 500) description = it }, label = { Text("Deskripsi") }, supportingText = { Text("${description.length}/500") }, minLines = 3, maxLines = 5, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(contact, { contact = it }, label = { Text("Kontak (No. HP / Email)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(state.name, { }, label = { Text("Nama Hewan") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(state.age, { }, label = { Text("Usia (bulan)") }, placeholder = { Text("Isi 0 jika tidak tahu") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(state.description, { }, label = { Text("Deskripsi") }, supportingText = { Text("${state.description.length}/500") }, minLines = 3, maxLines = 5, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(state.contact, { }, label = { Text("Kontak (No. HP / Email)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(latitude, { latitude = it }, label = { Text("Latitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
-                    OutlinedTextField(longitude, { longitude = it }, label = { Text("Longitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(state.latitude, { }, label = { Text("Latitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(state.longitude, { }, label = { Text("Longitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
                 }
                 OutlinedButton(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Gunakan Lokasi Saya") }
                 OutlinedButton(onClick = { }) { Text("Pilih Foto") }
@@ -469,69 +419,5 @@ private fun PostAnimalScreenPreview() {
                 Button(onClick = { }, modifier = Modifier.fillMaxWidth().height(50.dp), enabled = false) { Text("Simpan") }
             }
         }
-    }
-}
-
-private fun validateContact(contact: String): String? {
-    if (contact.length < 6) return "Kontak minimal 6 karakter"
-    val isPhone = Regex("^[+]?[0-9]{8,15}$").matches(contact)
-    val isEmail = Regex("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$").matches(contact)
-    if (!isPhone && !isEmail) return "Masukkan nomor HP atau email yang valid"
-    return null
-}
-
-private fun validateLatitude(lat: String): String? {
-    if (lat.isBlank()) return null
-    val value = lat.toDoubleOrNull() ?: return "Latitude tidak valid"
-    if (value < -90.0 || value > 90.0) return "Latitude harus antara -90 dan 90"
-    return null
-}
-
-private fun validateLongitude(lon: String): String? {
-    if (lon.isBlank()) return null
-    val value = lon.toDoubleOrNull() ?: return "Longitude tidak valid"
-    if (value < -180.0 || value > 180.0) return "Longitude harus antara -180 dan 180"
-    return null
-}
-
-private fun getCurrentLocation(
-    context: android.content.Context,
-    onSuccess: (Double, Double) -> Unit,
-    onFailure: () -> Unit
-) {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    if (ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        onFailure()
-        return
-    }
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        if (location != null) {
-            onSuccess(location.latitude, location.longitude)
-        } else {
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
-            ).addOnSuccessListener { currentLocation ->
-                if (currentLocation != null) {
-                    onSuccess(currentLocation.latitude, currentLocation.longitude)
-                } else {
-                    onFailure()
-                }
-            }.addOnFailureListener { onFailure() }
-        }
-    }.addOnFailureListener { onFailure() }
-}
-
-private fun uriToFile(context: android.content.Context, uri: Uri): File? {
-    return try {
-        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-        val file = File(context.filesDir, "upload_${System.currentTimeMillis()}.jpg")
-        file.outputStream().use { output -> inputStream.copyTo(output) }
-        file
-    } catch (_: Exception) {
-        null
     }
 }

@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.utils.Result
+import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
     private val repository = AuthRepository()
@@ -16,6 +16,16 @@ class AuthViewModel : ViewModel() {
 
     private val _registerState = MutableLiveData<Result<String>>()
     val registerState: LiveData<Result<String>> = _registerState
+
+    private val _sessionState = MutableLiveData<Result<com.yarsi.rescuepet.data.model.UserData>?>()
+    val sessionState: LiveData<Result<com.yarsi.rescuepet.data.model.UserData>?> = _sessionState
+
+    fun checkSession() {
+        _sessionState.value = Result.Loading
+        viewModelScope.launch {
+            _sessionState.value = repository.getCurrentUser()
+        }
+    }
 
     fun login(email: String, password: String, role: String) {
         val validationError = validateEmail(email) ?: validatePassword(password)

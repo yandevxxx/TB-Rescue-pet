@@ -8,11 +8,13 @@ import kotlinx.coroutines.launch
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.AnimalRepository
 import com.yarsi.rescuepet.data.repository.AuthRepository
+import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.utils.Result
 
 class DetailViewModel : ViewModel() {
     private val animalRepo = AnimalRepository()
     private val authRepo = AuthRepository()
+    private val storageRepo = StorageRepository()
 
     private val _animal = MutableLiveData<Animal?>()
     val animal: LiveData<Animal?> = _animal
@@ -36,6 +38,8 @@ class DetailViewModel : ViewModel() {
     val deleteState: LiveData<Result<Unit>> = _deleteState
 
     private var currentAnimalId: String? = null
+
+    fun getImageUrl(imageId: String): String = storageRepo.getImageUrl(imageId)
 
     fun loadAnimal(id: String) {
         currentAnimalId = id
