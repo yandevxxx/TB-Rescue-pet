@@ -79,6 +79,10 @@ class PostAnimalActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val animalId = intent.getStringExtra("animal_id")
+        if (animalId != null) {
+            viewModel.loadForEdit(animalId)
+        }
         setContent {
             RescuePetTheme {
                 PostAnimalScreen(
@@ -153,7 +157,10 @@ fun PostAnimalScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Posting Hewan") },
+                title = {
+                    val formState = viewModel.formState.value
+                    Text(if (formState?.isEditMode == true) "Edit Hewan" else "Posting Hewan")
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")

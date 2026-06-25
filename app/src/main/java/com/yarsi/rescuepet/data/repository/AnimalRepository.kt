@@ -115,6 +115,30 @@ class AnimalRepository {
         }
     }
 
+    suspend fun updateAnimal(id: String, animal: Animal, userId: String): Result<Unit> {
+        return try {
+            db.updateDocument(
+                databaseId = Constants.DATABASE_ID,
+                collectionId = Constants.COLLECTION_ANIMALS,
+                documentId = id,
+                data = mapOf(
+                    "type" to animal.type,
+                    "name" to animal.name,
+                    "age" to animal.age,
+                    "description" to animal.description,
+                    "imageId" to animal.imageId,
+                    "category" to animal.category,
+                    "latitude" to animal.latitude,
+                    "longitude" to animal.longitude,
+                    "posterContact" to animal.posterContact
+                )
+            )
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(ErrorMapper.map(e, "Gagal update"))
+        }
+    }
+
     suspend fun updateStatus(id: String, status: String, userId: String): Result<Unit> {
         return try {
             val animal = db.getDocument(

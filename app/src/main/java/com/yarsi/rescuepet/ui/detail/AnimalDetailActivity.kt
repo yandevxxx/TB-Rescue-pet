@@ -69,21 +69,35 @@ import com.yarsi.rescuepet.utils.maskContact
 import kotlinx.coroutines.launch
 import java.util.Locale
 import androidx.core.net.toUri
+import androidx.activity.result.contract.ActivityResultContracts
 
 class AnimalDetailActivity : ComponentActivity() {
     private val viewModel: DetailViewModel by viewModels()
+    private var animalId: String? = null
+
+    private val editResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        animalId?.let { viewModel.loadAnimal(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val animalId = intent.getStringExtra("animal_id") ?: run {
+        animalId = intent.getStringExtra("animal_id") ?: run {
             finish(); return
         }
-        viewModel.loadAnimal(animalId)
+        viewModel.loadAnimal(animalId!!)
         setContent {
             RescuePetTheme {
                 DetailScreen(
                     viewModel = viewModel,
-                    onBack = { finish() }
+                    onBack = { finish() },
+                    onEdit = { id ->
+                        val intent = Intent(this, com.yarsi.rescuepet.ui.post.PostAnimalActivity::class.java).apply {
+                            putExtra("animal_id", id)
+                        }
+                        editResultLauncher.launch(intent)
+                    }
                 )
             }
         }
@@ -94,7 +108,8 @@ class AnimalDetailActivity : ComponentActivity() {
 @Composable
 fun DetailScreen(
     viewModel: DetailViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onEdit: (String) -> Unit = {}
 ) {
     val animal by viewModel.animal.observeAsState()
     val isLoading by viewModel.isLoading.observeAsState(false)
@@ -215,6 +230,9 @@ fun DetailScreen(
                         },
                         onDelete = {
                             viewModel.deleteAnimal(animal!!.id)
+                        },
+                        onEdit = {
+                            onEdit(animal!!.id)
                         }
                     )
                 }
@@ -235,7 +253,8 @@ fun DetailContent(
     address: String?,
     context: android.content.Context,
     onUpdateStatus: (String) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     val isOwner = currentUserId != null && currentUserId == animal.posterId
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -391,6 +410,13 @@ fun DetailContent(
 
         if (isOwner) {
             Spacer(modifier = Modifier.height(4.dp))
+            Button(
+                onClick = onEdit,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Edit Postingan")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { showDeleteDialog = true },
                 modifier = Modifier.fillMaxWidth(),

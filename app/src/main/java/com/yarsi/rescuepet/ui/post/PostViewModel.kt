@@ -37,6 +37,10 @@ data class PostFormState(
     val isGettingLocation: Boolean = false,
     val isLoadingAddress: Boolean = false,
     val address: String? = null,
+    val isEditMode: Boolean = false,
+    val animalId: String = "",
+    val existingImageId: String = "",
+    val existingStatus: String = "",
     val isSubmitting: Boolean = false,
     val submitResult: Result<String>? = null
 ) {
@@ -103,6 +107,44 @@ class PostViewModel : ViewModel() {
 
     fun resetSubmitResult() {
         _formState.value = _formState.value!!.copy(submitResult = null)
+    }
+
+    fun loadForEdit(animalId: String) {
+        viewModelScope.launch {
+            when (val result = animalRepo.getAnimalById(animalId)) {
+                is Result.Success -> {
+                    val a = result.data
+                    _formState.value = PostFormState(
+                        type = a.type.replaceFirstChar { it.uppercase() },
+                        category = when (a.category) {
+                            "adoption" -> "Adopsi"
+                            "lost" -> "Hilang"
+                            "found" -> "Ditemukan"
+                            else -> a.category
+                        },
+                        name = a.name,
+                        age = if (a.age > 0) a.age.toString() else "",
+                        description = a.description,
+                        contact = a.posterContact,
+                        latitude = if (a.latitude != 0.0) "%.6f".format(java.util.Locale.US, a.latitude) else "",
+                        longitude = if (a.longitude != 0.0) "%.6f".format(java.util.Locale.US, a.longitude) else "",
+                        isEditMode = true,
+                        animalId = animalId,
+                        existingImageId = a.imageId,
+                        existingStatus = a.status
+                    )
+                    if (a.latitude != 0.0 || a.longitude != 0.0) {
+                        loadAddress()
+                    }
+                }
+                is Result.Error -> {
+                    _formState.value = _formState.value!!.copy(
+                        submitResult = Result.Error(result.message)
+                    )
+                }
+                else -> {}
+            }
+        }
     }
 
     fun loadAddress() {
@@ -172,7 +214,7 @@ class PostViewModel : ViewModel() {
                 }
                 val userData = userResult.data
 
-                var imageId = ""
+                var imageId = state.existingImageId
                 if (imageFile != null) {
                     val uploadResult = storageRepo.uploadImage(imageFile)
                     if (uploadResult is Result.Error) {
@@ -190,7 +232,7 @@ class PostViewModel : ViewModel() {
                     name = state.name,
                     age = state.age.toIntOrNull() ?: 0,
                     description = state.description,
-                    status = "available",
+                    status = if (state.isEditMode) state.existingStatus else "available",
                     latitude = state.latitude.toDoubleOrNull() ?: 0.0,
                     longitude = state.longitude.toDoubleOrNull() ?: 0.0,
                     posterContact = state.contact,
@@ -204,7 +246,12 @@ class PostViewModel : ViewModel() {
                     posterName = userData.name
                 )
 
-                val result = animalRepo.postAnimal(animal)
+                val result = if (state.isEditMode) {
+                    animalRepo.updateAnimal(state.animalId, animal, userData.id)
+                    Result.Success(state.animalId)
+                } else {
+                    animalRepo.postAnimal(animal)
+                }
                 _formState.value = _formState.value!!.copy(
                     isSubmitting = false,
                     submitResult = result
