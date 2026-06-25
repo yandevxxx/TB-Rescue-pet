@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -129,19 +128,19 @@ fun AnimalCard(animal: Animal, imageUrl: String?, onClick: () -> Unit = {}) {
 
 @Composable
 fun StatusChip(status: String) {
-    val (label, containerColor) = when (status) {
-        "available" -> "Tersedia" to Color(0xFFE8F5E9)
-        "adopted" -> "Teradopsi" to Color(0xFFFFF3E0)
-        "found" -> "Ditemukan" to Color(0xFFE3F2FD)
-        "reunited" -> "Reunifikasi" to Color(0xFFF3E5F5)
-        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    val (label, containerColor, contentColor) = when (status) {
+        "available" -> Triple("Tersedia", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+        "adopted" -> Triple("Teradopsi", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+        "found" -> Triple("Ditemukan", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
+        "reunited" -> Triple("Reunifikasi", MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
+        else -> Triple(status, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
     }
     SuggestionChip(
         onClick = {},
         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
         colors = SuggestionChipDefaults.suggestionChipColors(
             containerColor = containerColor,
-            labelColor = MaterialTheme.colorScheme.onSurface
+            labelColor = contentColor
         ),
         border = null,
         shape = RoundedCornerShape(6.dp)

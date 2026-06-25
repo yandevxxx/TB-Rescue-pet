@@ -4,12 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.AnimalRepository
 import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.data.repository.StorageRepository
 import com.yarsi.rescuepet.utils.Result
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 class DetailViewModel : ViewModel() {
     private val animalRepo = AnimalRepository()
@@ -37,6 +44,9 @@ class DetailViewModel : ViewModel() {
     private val _deleteState = MutableLiveData<Result<Unit>>()
     val deleteState: LiveData<Result<Unit>> = _deleteState
 
+    private val _address = MutableLiveData<String?>()
+    val address: LiveData<String?> = _address
+
     private var currentAnimalId: String? = null
 
     fun getImageUrl(imageId: String): String = storageRepo.getImageUrl(imageId)
@@ -61,6 +71,33 @@ class DetailViewModel : ViewModel() {
                 else -> {}
             }
             _isLoading.value = false
+            val animalData = _animal.value
+            if (animalData != null && animalData.latitude != 0.0 && animalData.longitude != 0.0) {
+                loadAddress(animalData.latitude, animalData.longitude)
+            }
+        }
+    }
+
+    private suspend fun loadAddress(lat: Double, lng: Double) {
+        _address.value = "Memuat alamat..."
+        withContext(Dispatchers.IO) {
+            try {
+                val url = URL("https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=id")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.setRequestProperty("User-Agent", "PawBuddy/1.0 (RescuePet)")
+                conn.connectTimeout = 10000
+                conn.readTimeout = 10000
+                val reader = BufferedReader(InputStreamReader(conn.inputStream))
+                val response = reader.readText()
+                reader.close()
+                conn.disconnect()
+                val json = JSONObject(response)
+                val text = if (json.has("display_name")) json.getString("display_name") else null
+                _address.postValue(text)
+            } catch (e: Exception) {
+                _address.postValue(null)
+            }
         }
     }
 

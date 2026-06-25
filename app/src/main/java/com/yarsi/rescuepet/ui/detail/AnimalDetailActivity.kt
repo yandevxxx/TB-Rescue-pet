@@ -17,18 +17,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -37,7 +42,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -47,22 +51,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import java.util.Locale
 import coil.compose.AsyncImage
 import com.yarsi.rescuepet.data.model.Animal
+import com.yarsi.rescuepet.ui.home.CategoryChip
+import com.yarsi.rescuepet.ui.home.StatusChip
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.Result
 import com.yarsi.rescuepet.utils.maskContact
 import kotlinx.coroutines.launch
+import java.util.Locale
 import androidx.core.net.toUri
 
 class AnimalDetailActivity : ComponentActivity() {
@@ -98,6 +103,7 @@ fun DetailScreen(
     val deleteState by viewModel.deleteState.observeAsState()
     val currentUserId by viewModel.currentUserId.observeAsState()
     val currentRole by viewModel.currentRole.observeAsState()
+    val address by viewModel.address.observeAsState()
     val isUpdating by remember { derivedStateOf { updateState is Result.Loading } }
     val isDeleting by remember { derivedStateOf { deleteState is Result.Loading } }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -157,15 +163,42 @@ fun DetailScreen(
         ) {
             when {
                 isLoading && animal == null -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(40.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Memuat data...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 error != null && animal == null -> {
-                    Text(
-                        text = error ?: "Terjadi kesalahan",
+                    Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = error ?: "Terjadi kesalahan",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 animal != null -> {
                     DetailContent(
@@ -175,6 +208,7 @@ fun DetailScreen(
                         isUpdating = isUpdating,
                         isDeleting = isDeleting,
                         imageUrl = if (animal!!.imageId.isNotEmpty()) viewModel.getImageUrl(animal!!.imageId) else null,
+                        address = address,
                         context = context,
                         onUpdateStatus = { newStatus ->
                             viewModel.updateStatus(animal!!.id, newStatus)
@@ -198,6 +232,7 @@ fun DetailContent(
     isUpdating: Boolean,
     isDeleting: Boolean,
     imageUrl: String?,
+    address: String?,
     context: android.content.Context,
     onUpdateStatus: (String) -> Unit,
     onDelete: () -> Unit
@@ -212,16 +247,33 @@ fun DetailContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = animal.name,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .background(Color.LightGray, RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
+        if (!imageUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = animal.name,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Pets,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                )
+            }
+        }
 
         Text(
             text = animal.name,
@@ -230,54 +282,49 @@ fun DetailContent(
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = when (animal.category) {
-                    "adoption" -> "Adopsi"
-                    "lost" -> "Hilang"
-                    "found" -> "Ditemukan"
-                    else -> animal.category
-                },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = when (animal.status) {
-                    "available" -> "Tersedia"
-                    "adopted" -> "Teradopsi"
-                    "found" -> "Ditemukan"
-                    "reunited" -> "Sudah Reunifikasi"
-                    else -> animal.status
-                },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            StatusChip(animal.status)
+            CategoryChip(animal.category)
         }
 
+        HorizontalDivider()
         DetailRow("Jenis", animal.type)
         DetailRow("Usia", if (animal.age > 0) "${animal.age} bulan" else "Belum diketahui")
         if (animal.posterName.isNotEmpty()) {
-            DetailRow("Diposting", animal.posterName)
+            DetailRow("Diposting oleh", animal.posterName)
         }
         if (animal.description.isNotEmpty()) {
+            HorizontalDivider()
+            Text(
+                text = "Deskripsi",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Text(
                 text = animal.description,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
+
+        HorizontalDivider()
         if (animal.posterContact.isNotEmpty()) {
             val masked = if (isOwner) animal.posterContact else maskContact(animal.posterContact)
             DetailRow("Kontak", masked)
         }
         if (animal.latitude != 0.0 || animal.longitude != 0.0) {
-            DetailRow(label = "Lokasi", value = "${"%.4f".format(Locale.US, animal.latitude)}, ${"%.4f".format(Locale.US, animal.longitude)}", onClick = {
-                    val uri =
-                        "geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}".toUri()
-                context.run { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
-            })
+            DetailRow(
+                label = "Lokasi",
+                value = address ?: "${"%.4f".format(Locale.US, animal.latitude)}, ${"%.4f".format(Locale.US, animal.longitude)}",
+                onClick = {
+                    val uri = "geo:${animal.latitude},${animal.longitude}?q=${animal.latitude},${animal.longitude}".toUri()
+                    context.run { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                }
+            )
         }
 
         if (!isOwner && currentRole == "Pencari" && animal.status == "available" && animal.posterContact.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
             Button(
                 onClick = {
                     val contact = animal.posterContact
@@ -302,11 +349,11 @@ fun DetailContent(
         }
 
         if (isOwner && animal.status == "available") {
-            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
             Text(
                 text = "Update Status",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -343,7 +390,7 @@ fun DetailContent(
         }
 
         if (isOwner) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             OutlinedButton(
                 onClick = { showDeleteDialog = true },
                 modifier = Modifier.fillMaxWidth(),
@@ -356,7 +403,7 @@ fun DetailContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
     }
 
     if (showDeleteDialog) {
@@ -412,29 +459,33 @@ private fun DetailScreenPreview() {
             ) {
                 Box(
                     Modifier.fillMaxWidth().height(250.dp)
-                        .background(Color.LightGray, RoundedCornerShape(12.dp))
-                        .clip(RoundedCornerShape(12.dp))
-                )
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Pets,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                    )
+                }
                 Text("Milo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Adopsi", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                    Text("Tersedia", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                    StatusChip("available")
+                    CategoryChip("adoption")
                 }
-                DetailLabel("Jenis", "Kucing")
-                DetailLabel("Usia", "6 bulan")
-                DetailLabel("Diposting", "Budi")
-                Text("Kucing jantan lucu, sudah divaksin", style = MaterialTheme.typography.bodyMedium)
-                DetailLabel("Kontak", "081234567890")
+                HorizontalDivider()
+                DetailRow("Jenis", "Kucing")
+                DetailRow("Usia", "6 bulan")
+                DetailRow("Diposting oleh", "Budi")
+                HorizontalDivider()
+                Text("Deskripsi", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Kucing jantan lucu, sudah divaksin", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                HorizontalDivider()
+                DetailRow("Kontak", "081234567890")
             }
         }
-    }
-}
-
-@Composable
-private fun DetailLabel(label: String, value: String) {
-    Row(Modifier.fillMaxWidth()) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(80.dp))
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -450,7 +501,14 @@ fun DetailRow(label: String, value: String, onClick: (() -> Unit)? = null) {
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(80.dp)
+            modifier = Modifier.width(90.dp)
+        )
+        Text(
+            text = ":",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(12.dp)
         )
         Text(
             text = value,

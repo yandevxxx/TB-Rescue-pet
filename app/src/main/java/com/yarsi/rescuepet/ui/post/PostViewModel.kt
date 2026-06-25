@@ -12,8 +12,15 @@ import com.yarsi.rescuepet.utils.Result
 import com.yarsi.rescuepet.utils.validateContact
 import com.yarsi.rescuepet.utils.validateLatitude
 import com.yarsi.rescuepet.utils.validateLongitude
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 data class PostFormState(
     val type: String = "",
@@ -28,6 +35,8 @@ data class PostFormState(
     val latitudeError: String? = null,
     val longitudeError: String? = null,
     val isGettingLocation: Boolean = false,
+    val isLoadingAddress: Boolean = false,
+    val address: String? = null,
     val isSubmitting: Boolean = false,
     val submitResult: Result<String>? = null
 ) {
@@ -72,10 +81,12 @@ class PostViewModel : ViewModel() {
 
     fun onLatitudeChanged(lat: String) {
         _formState.value = _formState.value!!.copy(latitude = lat, latitudeError = null)
+        loadAddress()
     }
 
     fun onLongitudeChanged(lon: String) {
         _formState.value = _formState.value!!.copy(longitude = lon, longitudeError = null)
+        loadAddress()
     }
 
     fun onLocationResult(lat: Double, lon: Double) {
@@ -92,6 +103,37 @@ class PostViewModel : ViewModel() {
 
     fun resetSubmitResult() {
         _formState.value = _formState.value!!.copy(submitResult = null)
+    }
+
+    fun loadAddress() {
+        val state = _formState.value!!
+        val lat = state.latitude.toDoubleOrNull()
+        val lng = state.longitude.toDoubleOrNull()
+        if (lat == null || lng == null || lat == 0.0 || lng == 0.0) return
+        _formState.value = state.copy(isLoadingAddress = true, address = null)
+        viewModelScope.launch {
+            val address = fetchAddress(lat, lng)
+            _formState.value = _formState.value!!.copy(isLoadingAddress = false, address = address)
+        }
+    }
+
+    private suspend fun fetchAddress(lat: Double, lng: Double): String? = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&accept-language=id")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.setRequestProperty("User-Agent", "PawBuddy/1.0 (RescuePet)")
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            val reader = BufferedReader(InputStreamReader(conn.inputStream))
+            val response = reader.readText()
+            reader.close()
+            conn.disconnect()
+            val json = JSONObject(response)
+            if (json.has("display_name")) json.getString("display_name") else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun submit(imageFile: File?) {
