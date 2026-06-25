@@ -61,6 +61,29 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    fun refresh() {
+        loadGeneration++
+        val gen = loadGeneration
+        viewModelScope.launch {
+            when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, null)) {
+                is Result.Success -> {
+                    if (gen != loadGeneration) return@launch
+                    val (data, lastId) = result.data
+                    allAnimals = data
+                    lastDocId = lastId
+                    _hasMore.value = lastId != null
+                    applyFilters()
+                    _error.value = null
+                }
+                is Result.Error -> {
+                    if (gen != loadGeneration) return@launch
+                    _error.value = result.message
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun loadAnimals(category: String? = null) {
         loadGeneration++
         val gen = loadGeneration

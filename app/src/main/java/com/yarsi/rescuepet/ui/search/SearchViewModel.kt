@@ -29,6 +29,15 @@ class SearchViewModel : ViewModel() {
 
     private val _userLocation = MutableLiveData<Pair<Double, Double>?>()
 
+    fun retry() {
+        val loc = _userLocation.value
+        if (loc != null) {
+            searchNearby(loc.first, loc.second)
+        } else {
+            _error.value = "Lokasi belum tersedia"
+        }
+    }
+
     fun onLocationError(message: String) {
         _error.value = message
     }

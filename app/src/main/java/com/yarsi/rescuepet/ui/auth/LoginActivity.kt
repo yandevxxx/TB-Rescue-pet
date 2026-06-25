@@ -48,8 +48,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.IconButton
 import com.yarsi.rescuepet.MainActivity
 
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
@@ -91,6 +95,9 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("Donor") }
     var roleExpanded by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
     val roleOptions = listOf("Donor", "Pencari")
     val loginState by viewModel.loginState.observeAsState()
     val sessionState by viewModel.sessionState.observeAsState()
@@ -173,8 +180,10 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { email = it; emailError = null },
                 label = { Text("Email") },
+                isError = emailError != null,
+                supportingText = emailError?.let { { Text(it) } },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -186,9 +195,19 @@ fun LoginScreen(
 
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { password = it; passwordError = null },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                isError = passwordError != null,
+                supportingText = passwordError?.let { { Text(it) } },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"
+                        )
+                    }
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
@@ -232,7 +251,13 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.login(email, password, role) },
+                onClick = {
+                    emailError = if (!email.matches(Regex("^[\\w.-]+@[\\w.-]+\\.\\w{2,}$"))) "Format email tidak valid" else null
+                    passwordError = if (password.length < 8) "Password minimal 8 karakter" else null
+                    if (emailError == null && passwordError == null) {
+                        viewModel.login(email, password, role)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

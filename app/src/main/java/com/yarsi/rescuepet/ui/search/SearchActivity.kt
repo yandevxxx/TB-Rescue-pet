@@ -27,6 +27,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,6 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +54,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -56,9 +61,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 
+import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.ui.detail.AnimalDetailActivity
+import com.yarsi.rescuepet.ui.home.CategoryChip
+import com.yarsi.rescuepet.ui.home.StatusChip
 import com.yarsi.rescuepet.ui.theme.RescuePetTheme
 import com.yarsi.rescuepet.utils.getCurrentLocation
 import java.util.Locale
@@ -143,9 +151,14 @@ fun SearchScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = { viewModel.retry() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -167,33 +180,74 @@ fun SearchScreen(
                     }
                 }
                 error != null && nearbyAnimals.isEmpty() -> {
-                    Text(
-                        text = error ?: "Terjadi kesalahan",
-                        style = MaterialTheme.typography.bodyLarge,
+                    Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = error ?: "Terjadi kesalahan",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = {
+                            viewModel.retry()
+                        }) {
+                            Text("Coba Lagi")
+                        }
+                    }
                 }
                 nearbyAnimals.isEmpty() -> {
-                    Text(
-                        text = "Tidak ada hewan di sekitar (radius 10 km)",
-                        style = MaterialTheme.typography.bodyLarge,
+                    Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.SearchOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Tidak ada hewan di sekitar",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Radius pencarian 10 km",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
                 }
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(16.dp)
+                    PullToRefreshBox(
+                        isRefreshing = isLoading,
+                        onRefresh = { viewModel.retry() },
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(nearbyAnimals, key = { it.animal.id }) { item ->
-                            val imageUrl = if (item.animal.imageId.isNotEmpty())
-                                viewModel.getImageUrl(item.animal.imageId) else null
-                            NearbyAnimalCard(item = item, imageUrl = imageUrl, onClick = { onAnimalClick(item.animal.id) })
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            items(nearbyAnimals, key = { it.animal.id }) { item ->
+                                val imageUrl = if (item.animal.imageId.isNotEmpty())
+                                    viewModel.getImageUrl(item.animal.imageId) else null
+                                NearbyAnimalCard(item = item, imageUrl = imageUrl, onClick = { onAnimalClick(item.animal.id) }, modifier = Modifier)
+                            }
                         }
                     }
                 }
@@ -203,7 +257,7 @@ fun SearchScreen(
 }
 
 @Composable
-fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () -> Unit = {}) {
+fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val animal = item.animal
     val distanceText = if (item.distanceKm < 1.0) {
         "${"%.0f".format(Locale.US, item.distanceKm * 1000)} m"
@@ -213,7 +267,7 @@ fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () ->
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -222,14 +276,23 @@ fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () ->
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = imageUrl,
                 contentDescription = animal.name,
                 modifier = Modifier
                     .size(80.dp)
-                    .background(Color.LightGray, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    }
+                },
+                error = {
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Pets, contentDescription = null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                    }
+                }
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -240,6 +303,12 @@ fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () ->
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    StatusChip(animal.status)
+                    CategoryChip(animal.category)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = animal.type,
                     style = MaterialTheme.typography.bodyMedium,
@@ -255,64 +324,42 @@ fun NearbyAnimalCard(item: AnimalWithDistance, imageUrl: String?, onClick: () ->
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun SearchScreenPreview() {
-    data class NearbyMock(val name: String, val type: String, val distanceKm: Double)
+    fun createMockAnimal(name: String, type: String, distanceKm: Double): AnimalWithDistance {
+        return AnimalWithDistance(
+            animal = Animal(
+                id = name.lowercase(),
+                type = type,
+                name = name,
+                age = 12,
+                description = "",
+                status = "available",
+                category = "adoption",
+                latitude = -6.2,
+                longitude = 106.8,
+                posterContact = "",
+                posterId = "",
+                posterName = "",
+                imageId = ""
+            ),
+            distanceKm = distanceKm
+        )
+    }
     val mockResults = listOf(
-        NearbyMock("Milo", "Kucing", 0.5),
-        NearbyMock("Bruno", "Anjing", 1.2),
-        NearbyMock("Coco", "Kucing", 2.8),
-        NearbyMock("Max", "Anjing", 5.3),
+        createMockAnimal("Milo", "Kucing", 0.5),
+        createMockAnimal("Bruno", "Anjing", 1.2),
+        createMockAnimal("Coco", "Kucing", 2.8),
+        createMockAnimal("Max", "Anjing", 5.3),
     )
     RescuePetTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Hewan Terdekat") },
-                    navigationIcon = {
-                        IconButton(onClick = { }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
-        ) { padding ->
-            LazyColumn(
-                Modifier.fillMaxSize().padding(padding),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                items(mockResults, key = { it.name }) { item ->
-                    Card(
-                        onClick = { },
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                Modifier.size(80.dp)
-                                    .background(Color.LightGray, RoundedCornerShape(8.dp))
-                                    .clip(RoundedCornerShape(8.dp))
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(item.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(item.type, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                val dist = if (item.distanceKm < 1.0) "${"%.0f".format(Locale.US, item.distanceKm * 1000)} m" else "${"%.1f".format(Locale.US, item.distanceKm)} km"
-                                Text(dist, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                    }
-                }
+        LazyColumn(
+            Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(mockResults, key = { it.animal.id }) { item ->
+                NearbyAnimalCard(item = item, imageUrl = null, onClick = {})
             }
         }
     }

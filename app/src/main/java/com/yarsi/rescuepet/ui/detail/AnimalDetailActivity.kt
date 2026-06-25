@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -59,7 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.ui.home.CategoryChip
 import com.yarsi.rescuepet.ui.home.StatusChip
@@ -164,8 +165,8 @@ fun DetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
@@ -213,6 +214,10 @@ fun DetailScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { viewModel.reloadAnimal() }) {
+                            Text("Coba Lagi")
+                        }
                     }
                 }
                 animal != null -> {
@@ -266,23 +271,30 @@ fun DetailContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        val imageModifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .clip(RoundedCornerShape(12.dp))
         if (!imageUrl.isNullOrEmpty()) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = imageUrl,
                 contentDescription = animal.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                modifier = imageModifier,
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(Modifier.size(32.dp), strokeWidth = 3.dp)
+                    }
+                },
+                error = {
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Pets, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                    }
+                }
             )
         } else {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                modifier = imageModifier.background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -458,60 +470,38 @@ fun DetailContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun DetailScreenPreview() {
+    val mockAnimal = Animal(
+        id = "1",
+        type = "Kucing",
+        name = "Milo",
+        age = 6,
+        description = "Kucing jantan lucu, sudah divaksin",
+        status = "available",
+        category = "adoption",
+        latitude = -6.2,
+        longitude = 106.8,
+        posterContact = "081234567890",
+        posterId = "user1",
+        posterName = "Budi",
+        imageId = ""
+    )
     RescuePetTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Detail Hewan") },
-                    navigationIcon = {
-                        IconButton(onClick = { }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
-        ) { padding ->
-            Column(
-                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    Modifier.fillMaxWidth().height(250.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Pets,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    )
-                }
-                Text("Milo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatusChip("available")
-                    CategoryChip("adoption")
-                }
-                HorizontalDivider()
-                DetailRow("Jenis", "Kucing")
-                DetailRow("Usia", "6 bulan")
-                DetailRow("Diposting oleh", "Budi")
-                HorizontalDivider()
-                Text("Deskripsi", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Kucing jantan lucu, sudah divaksin", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                HorizontalDivider()
-                DetailRow("Kontak", "081234567890")
-            }
-        }
+        DetailContent(
+            animal = mockAnimal,
+            currentUserId = "user1",
+            currentRole = "Donor",
+            isUpdating = false,
+            isDeleting = false,
+            imageUrl = null,
+            address = "Jakarta, Indonesia",
+            context = androidx.compose.ui.platform.LocalContext.current,
+            onUpdateStatus = {},
+            onDelete = {},
+            onEdit = {}
+        )
     }
 }
 
@@ -527,7 +517,7 @@ fun DetailRow(label: String, value: String, onClick: (() -> Unit)? = null) {
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(90.dp)
+            modifier = Modifier.widthIn(max = 120.dp)
         )
         Text(
             text = ":",

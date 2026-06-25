@@ -25,13 +25,13 @@ class MainActivity : ComponentActivity() {
     private val postResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        homeViewModel.loadAnimals()
+        homeViewModel.refresh()
     }
 
     private val detailResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        homeViewModel.loadAnimals()
+        homeViewModel.refresh()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

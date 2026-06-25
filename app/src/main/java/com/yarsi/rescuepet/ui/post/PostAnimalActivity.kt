@@ -167,8 +167,8 @@ fun PostAnimalScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
@@ -266,7 +266,15 @@ fun PostAnimalScreen(
                 value = state.description,
                 onValueChange = { viewModel.onDescriptionChanged(it) },
                 label = { Text("Deskripsi") },
-                supportingText = { Text("${state.description.length}/500") },
+                supportingText = {
+                    val len = state.description.length
+                    val color = when {
+                        len >= 500 -> MaterialTheme.colorScheme.error
+                        len >= 400 -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    Text("$len/500", color = color)
+                },
                 minLines = 3,
                 maxLines = 5,
                 modifier = Modifier.fillMaxWidth()
@@ -452,8 +460,8 @@ private fun PostAnimalScreenPreview() {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             }
@@ -470,7 +478,15 @@ private fun PostAnimalScreenPreview() {
                 }
                 OutlinedTextField(state.name, { }, label = { Text("Nama Hewan") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(state.age, { }, label = { Text("Usia (bulan)") }, placeholder = { Text("Isi 0 jika tidak tahu") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(state.description, { }, label = { Text("Deskripsi") }, supportingText = { Text("${state.description.length}/500") }, minLines = 3, maxLines = 5, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(state.description, { }, label = { Text("Deskripsi") }, supportingText = {
+                    val len = state.description.length
+                    val color = when {
+                        len >= 500 -> MaterialTheme.colorScheme.error
+                        len >= 400 -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    Text("$len/500", color = color)
+                }, minLines = 3, maxLines = 5, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(state.contact, { }, label = { Text("Kontak (No. HP / Email)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(state.latitude, { }, label = { Text("Latitude") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
