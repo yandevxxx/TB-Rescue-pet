@@ -55,12 +55,13 @@ class DetailViewModel : ViewModel() {
         currentAnimalId = id
         _isLoading.value = true
         viewModelScope.launch {
-            val userResult = authRepo.getCurrentUser()
+            val userResult = withContext(Dispatchers.IO) { authRepo.getCurrentUser() }
             if (userResult is Result.Success) {
                 _currentUserId.value = userResult.data.id
             }
-            _currentRole.value = authRepo.getRole()
-            when (val result = animalRepo.getAnimalById(id)) {
+            _currentRole.postValue(withContext(Dispatchers.IO) { authRepo.getRole() })
+            val result = withContext(Dispatchers.IO) { animalRepo.getAnimalById(id) }
+            when (result) {
                 is Result.Success -> {
                     _animal.value = result.data
                     _error.value = null
@@ -106,13 +107,9 @@ class DetailViewModel : ViewModel() {
     }
 
     fun updateStatus(animalId: String, newStatus: String) {
-        val uid = _currentUserId.value ?: run {
-            _updateState.value = Result.Error("Silakan login terlebih dahulu")
-            return
-        }
         _updateState.value = Result.Loading
         viewModelScope.launch {
-            val result = animalRepo.updateStatus(animalId, newStatus, uid)
+            val result = withContext(Dispatchers.IO) { animalRepo.updateStatus(animalId, newStatus) }
             _updateState.value = result
             if (result is Result.Success) {
                 reloadAnimal()
@@ -121,13 +118,10 @@ class DetailViewModel : ViewModel() {
     }
 
     fun deleteAnimal(animalId: String) {
-        val uid = _currentUserId.value ?: run {
-            _deleteState.value = Result.Error("Silakan login terlebih dahulu")
-            return
-        }
         _deleteState.value = Result.Loading
         viewModelScope.launch {
-            _deleteState.value = animalRepo.deleteAnimal(animalId, uid)
+            val result = withContext(Dispatchers.IO) { animalRepo.deleteAnimal(animalId) }
+            _deleteState.value = result
         }
     }
 }

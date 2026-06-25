@@ -1,5 +1,8 @@
 package com.yarsi.rescuepet.data.model
 
+import androidx.compose.runtime.Stable
+
+@Stable
 data class Animal(
     val id: String = "",
     val type: String = "",

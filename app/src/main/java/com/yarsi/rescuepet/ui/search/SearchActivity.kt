@@ -244,8 +244,9 @@ fun SearchScreen(
                             contentPadding = PaddingValues(16.dp)
                         ) {
                             items(nearbyAnimals, key = { it.animal.id }) { item ->
-                                val imageUrl = if (item.animal.imageId.isNotEmpty())
-                                    viewModel.getImageUrl(item.animal.imageId) else null
+                                val imageUrl = remember(item.animal.imageId) {
+                                    if (item.animal.imageId.isNotEmpty()) viewModel.getImageUrl(item.animal.imageId) else null
+                                }
                                 NearbyAnimalCard(item = item, imageUrl = imageUrl, onClick = { onAnimalClick(item.animal.id) }, modifier = Modifier)
                             }
                         }

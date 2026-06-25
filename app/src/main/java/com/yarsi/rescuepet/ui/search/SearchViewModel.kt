@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.repository.AnimalRepository
 import com.yarsi.rescuepet.data.repository.StorageRepository
@@ -54,7 +56,10 @@ class SearchViewModel : ViewModel() {
         _userLocation.value = Pair(userLat, userLon)
         _isLoading.value = true
         viewModelScope.launch {
-            when (val result = repository.searchNearby(userLat, userLon)) {
+            val result = withContext(Dispatchers.IO) {
+                repository.searchNearby(userLat, userLon)
+            }
+            when (result) {
                 is Result.Success -> {
                     val filtered = filterByDistance(result.data, userLat, userLon, 10.0)
                     _nearbyAnimals.value = filtered

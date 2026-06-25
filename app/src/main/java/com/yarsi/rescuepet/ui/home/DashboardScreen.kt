@@ -273,8 +273,9 @@ fun DashboardScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             items(animals, key = { it.id }) { animal ->
-                                val imageUrl = if (animal.imageId.isNotEmpty())
-                                    viewModel.getImageUrl(animal.imageId) else null
+                                val imageUrl = remember(animal.imageId) {
+                                    if (animal.imageId.isNotEmpty()) viewModel.getImageUrl(animal.imageId) else null
+                                }
                                 AnimalCard(
                                     animal = animal,
                                     imageUrl = imageUrl,

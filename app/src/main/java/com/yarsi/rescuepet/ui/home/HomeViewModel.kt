@@ -5,9 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.appwrite.models.RealtimeSubscription
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.yarsi.rescuepet.data.model.Animal
 import com.yarsi.rescuepet.data.remote.AppwriteClient
 import com.yarsi.rescuepet.data.repository.AnimalRepository
@@ -56,8 +58,9 @@ class HomeViewModel : ViewModel() {
     }
 
     fun loadRole() {
-        viewModelScope.launch {
-            _currentRole.value = AuthRepository().getRole()
+        viewModelScope.launch(Dispatchers.IO) {
+            val role = AuthRepository().getRole()
+            _currentRole.postValue(role)
         }
     }
 
@@ -65,9 +68,12 @@ class HomeViewModel : ViewModel() {
         loadGeneration++
         val gen = loadGeneration
         viewModelScope.launch {
-            when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, null)) {
+            val result = withContext(Dispatchers.IO) {
+                repository.getAnimalsPaged(currentCategory, PAGE_SIZE, null)
+            }
+            if (gen != loadGeneration) return@launch
+            when (result) {
                 is Result.Success -> {
-                    if (gen != loadGeneration) return@launch
                     val (data, lastId) = result.data
                     allAnimals = data
                     lastDocId = lastId
@@ -76,7 +82,6 @@ class HomeViewModel : ViewModel() {
                     _error.value = null
                 }
                 is Result.Error -> {
-                    if (gen != loadGeneration) return@launch
                     _error.value = result.message
                 }
                 else -> {}
@@ -94,9 +99,12 @@ class HomeViewModel : ViewModel() {
         _hasMore.value = false
         _isLoading.value = true
         viewModelScope.launch {
-            when (val result = repository.getAnimalsPaged(category, PAGE_SIZE, null)) {
+            val result = withContext(Dispatchers.IO) {
+                repository.getAnimalsPaged(category, PAGE_SIZE, null)
+            }
+            if (gen != loadGeneration) return@launch
+            when (result) {
                 is Result.Success -> {
-                    if (gen != loadGeneration) return@launch
                     val (data, lastId) = result.data
                     allAnimals = data
                     lastDocId = lastId
@@ -105,7 +113,6 @@ class HomeViewModel : ViewModel() {
                     _error.value = null
                 }
                 is Result.Error -> {
-                    if (gen != loadGeneration) return@launch
                     _error.value = result.message
                 }
                 else -> {}
@@ -119,9 +126,12 @@ class HomeViewModel : ViewModel() {
         val gen = loadGeneration
         _isLoadingMore.value = true
         viewModelScope.launch {
-            when (val result = repository.getAnimalsPaged(currentCategory, PAGE_SIZE, lastDocId)) {
+            val result = withContext(Dispatchers.IO) {
+                repository.getAnimalsPaged(currentCategory, PAGE_SIZE, lastDocId)
+            }
+            if (gen != loadGeneration) return@launch
+            when (result) {
                 is Result.Success -> {
-                    if (gen != loadGeneration) return@launch
                     val (data, lastId) = result.data
                     allAnimals = allAnimals + data
                     lastDocId = lastId
@@ -129,7 +139,6 @@ class HomeViewModel : ViewModel() {
                     applyFilters()
                 }
                 is Result.Error -> {
-                    if (gen != loadGeneration) return@launch
                     _error.value = result.message
                 }
                 else -> {}
@@ -180,7 +189,7 @@ class HomeViewModel : ViewModel() {
 
     fun logout(onDone: () -> Unit) {
         viewModelScope.launch {
-            AuthRepository().logout()
+            withContext(Dispatchers.IO) { AuthRepository().logout() }
             onDone()
         }
     }

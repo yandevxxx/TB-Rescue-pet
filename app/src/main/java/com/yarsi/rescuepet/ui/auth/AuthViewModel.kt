@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yarsi.rescuepet.data.repository.AuthRepository
 import com.yarsi.rescuepet.utils.Result
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
@@ -22,8 +23,9 @@ class AuthViewModel : ViewModel() {
 
     fun checkSession() {
         _sessionState.value = Result.Loading
-        viewModelScope.launch {
-            _sessionState.value = repository.getCurrentUser()
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = repository.getCurrentUser()
+            _sessionState.postValue(result)
         }
     }
 
@@ -34,8 +36,9 @@ class AuthViewModel : ViewModel() {
             return
         }
         _loginState.value = Result.Loading
-        viewModelScope.launch {
-            _loginState.value = repository.login(email, password, role)
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = repository.login(email, password, role)
+            _loginState.postValue(result)
         }
     }
 
@@ -46,8 +49,9 @@ class AuthViewModel : ViewModel() {
             return
         }
         _registerState.value = Result.Loading
-        viewModelScope.launch {
-            _registerState.value = repository.register(email, password, name)
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = repository.register(email, password, name)
+            _registerState.postValue(result)
         }
     }
 

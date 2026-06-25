@@ -111,7 +111,8 @@ class PostViewModel : ViewModel() {
 
     fun loadForEdit(animalId: String) {
         viewModelScope.launch {
-            when (val result = animalRepo.getAnimalById(animalId)) {
+            val result = withContext(Dispatchers.IO) { animalRepo.getAnimalById(animalId) }
+            when (result) {
                 is Result.Success -> {
                     val a = result.data
                     _formState.value = PostFormState(
@@ -154,7 +155,7 @@ class PostViewModel : ViewModel() {
         if (lat == null || lng == null || lat == 0.0 || lng == 0.0) return
         _formState.value = state.copy(isLoadingAddress = true, address = null)
         viewModelScope.launch {
-            val address = fetchAddress(lat, lng)
+            val address = withContext(Dispatchers.IO) { fetchAddress(lat, lng) }
             _formState.value = _formState.value!!.copy(isLoadingAddress = false, address = address)
         }
     }
@@ -204,7 +205,7 @@ class PostViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val userResult = authRepo.getCurrentUser()
+                val userResult = withContext(Dispatchers.IO) { authRepo.getCurrentUser() }
                 if (userResult !is Result.Success) {
                     _formState.value = _formState.value!!.copy(
                         isSubmitting = false,
@@ -216,7 +217,7 @@ class PostViewModel : ViewModel() {
 
                 var imageId = state.existingImageId
                 if (imageFile != null) {
-                    val uploadResult = storageRepo.uploadImage(imageFile)
+                    val uploadResult = withContext(Dispatchers.IO) { storageRepo.uploadImage(imageFile) }
                     if (uploadResult is Result.Error) {
                         _formState.value = _formState.value!!.copy(
                             isSubmitting = false,
@@ -246,18 +247,20 @@ class PostViewModel : ViewModel() {
                     posterName = userData.name
                 )
 
-                val result = if (state.isEditMode) {
-                    animalRepo.updateAnimal(state.animalId, animal, userData.id)
-                    Result.Success(state.animalId)
-                } else {
-                    animalRepo.postAnimal(animal)
+                val result = withContext(Dispatchers.IO) {
+                    if (state.isEditMode) {
+                        animalRepo.updateAnimal(state.animalId, animal, userData.id)
+                        Result.Success(state.animalId)
+                    } else {
+                        animalRepo.postAnimal(animal)
+                    }
                 }
                 _formState.value = _formState.value!!.copy(
                     isSubmitting = false,
                     submitResult = result
                 )
             } finally {
-                imageFile?.delete()
+                withContext(Dispatchers.IO) { imageFile?.delete() }
             }
         }
     }

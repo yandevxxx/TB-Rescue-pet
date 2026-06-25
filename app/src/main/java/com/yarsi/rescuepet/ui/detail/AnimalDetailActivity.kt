@@ -227,7 +227,9 @@ fun DetailScreen(
                         currentRole = currentRole,
                         isUpdating = isUpdating,
                         isDeleting = isDeleting,
-                        imageUrl = if (animal!!.imageId.isNotEmpty()) viewModel.getImageUrl(animal!!.imageId) else null,
+                        imageUrl = remember(animal!!.imageId) {
+                            if (animal!!.imageId.isNotEmpty()) viewModel.getImageUrl(animal!!.imageId) else null
+                        },
                         address = address,
                         context = context,
                         onUpdateStatus = { newStatus ->
