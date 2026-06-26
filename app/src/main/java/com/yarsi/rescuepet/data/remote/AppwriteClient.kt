@@ -7,7 +7,7 @@ import io.appwrite.services.Databases
 import io.appwrite.services.Storage
 import io.appwrite.services.Realtime
 import com.yarsi.rescuepet.utils.Constants
-
+a
 class AppwriteClient(context: Context) {
     private val client = Client(context.applicationContext)
         .setEndpoint(Constants.APPWRITE_ENDPOINT)
